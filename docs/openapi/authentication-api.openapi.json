@@ -1,0 +1,2315 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Authentication API — Identity Provider",
+    "description": "**🚀 Versão Atual da API:**\n- **Branch:** `local-dev`\n- **Commit:** `untracked`\n- **Data do Build:** `07/08/2026, 17:57:28`\n\n---\n\n## Overview\nCentralized Identity Provider (IdP) microservice built with **Clean Architecture**.\n\nSupports:\n- **Email/Password** authentication\n- **Social Login** (Google, Apple, Facebook, GitHub)\n- **JWT RS256** tokens with JWKS endpoint\n- **Refresh Token Rotation** with reuse detection\n- **Token Blocklist** via Redis\n- **RBAC** (Role-Based Access Control)\n\n## Authentication\nAll protected endpoints require a Bearer token in the Authorization header:\n```\nAuthorization: Bearer <access_token>\n```\n\n## Token Strategy\n- **Access Token**: JWT RS256, 15-minute TTL\n- **Refresh Token**: Opaque token, 7-day TTL with rotation\n- **JWKS**: Public key available at `/authentication_api/api/v1/auth/.well-known/jwks.json`",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT access token obtained from /authentication_api/api/v1/auth/login"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/health/authentication_api": {
+      "get": {
+        "summary": "Health check",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "uptime": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Creates a new user account with email and password. Validates password complexity. Sends a verification email automatically.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "name": {
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "description": "Full name",
+                    "type": "string"
+                  },
+                  "email": {
+                    "format": "email",
+                    "description": "Email address (must be unique)",
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "description": "Password (min 8 chars, uppercase, lowercase, digit, special char)",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "status",
+                    "emailVerified",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "emailVerified": {
+                      "description": "False until the user confirms their email",
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/login": {
+      "post": {
+        "summary": "Login with email and password",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Authenticates user credentials and returns JWT access token + refresh token. Requires email verification. Includes brute force protection (5 attempts / 15 min).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "description": "User email address",
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "description": "User password",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "user"
+                  ],
+                  "properties": {
+                    "accessToken": {
+                      "description": "JWT access token (RS256, 15min TTL)",
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "description": "Refresh token for token renewal",
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "role",
+                        "emailVerified"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "role": {
+                          "enum": [
+                            "USER",
+                            "ADMIN"
+                          ],
+                          "type": "string"
+                        },
+                        "emailVerified": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/login/social": {
+      "post": {
+        "summary": "Login with social provider (Google, Apple, etc.)",
+        "tags": [
+          "Auth",
+          "Social Login"
+        ],
+        "description": "Validates the social provider token, finds or creates the user, and returns internal JWT tokens. The social token is discarded after validation.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "token"
+                ],
+                "properties": {
+                  "provider": {
+                    "enum": [
+                      "GOOGLE",
+                      "APPLE",
+                      "FACEBOOK",
+                      "GITHUB"
+                    ],
+                    "description": "Social provider name",
+                    "type": "string"
+                  },
+                  "token": {
+                    "description": "ID token or access token from the social provider",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "user",
+                    "isNewUser"
+                  ],
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "role"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "isNewUser": {
+                      "description": "True if the user was auto-registered",
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/verify-email": {
+      "post": {
+        "summary": "Verify email address",
+        "tags": [
+          "Auth",
+          "Email Verification"
+        ],
+        "description": "Confirms the user email address using the token received by email. Must be called before user can log in.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "description": "Verification token received by email",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Human-readable response message",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/resend-verification": {
+      "post": {
+        "summary": "Resend verification email",
+        "tags": [
+          "Auth",
+          "Email Verification"
+        ],
+        "description": "Requests a new verification email without exposing whether the address has a pending account. Rate limited by IP and e-mail cooldown.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "description": "E-mail address associated with the pending verification",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Human-readable response message",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/forgot-password": {
+      "post": {
+        "summary": "Request password reset",
+        "tags": [
+          "Auth",
+          "Password Recovery"
+        ],
+        "description": "Sends a password reset email to the given address. Always returns success to prevent user enumeration. Token expires in 1 hour.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "description": "Email address of the account to recover",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Human-readable response message",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/reset-password": {
+      "post": {
+        "summary": "Reset password with token",
+        "tags": [
+          "Auth",
+          "Password Recovery"
+        ],
+        "description": "Resets the user password using the token received by email. Revokes all active sessions for security.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "newPassword"
+                ],
+                "properties": {
+                  "token": {
+                    "description": "Password reset token received by email",
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "minLength": 8,
+                    "description": "New password (must meet complexity requirements)",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Human-readable response message",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/change-password": {
+      "put": {
+        "summary": "Change password (authenticated)",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Changes the password for the authenticated user. Requires current password for confirmation. New password must meet complexity requirements and differ from current.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "minLength": 1,
+                    "description": "Current account password",
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "minLength": 8,
+                    "description": "New password (must meet complexity requirements)",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Human-readable response message",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Exchanges a valid refresh token for a new access token + refresh token pair. Implements token rotation: the old refresh token is invalidated.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "description": "Refresh token to exchange for a new pair",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "accessToken",
+                    "refreshToken"
+                  ],
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/logout": {
+      "post": {
+        "summary": "Logout (revoke tokens)",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Adds the access token JTI to the Redis blocklist and revokes the refresh token. Requires Bearer token in Authorization header.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "description": "Refresh token to revoke",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully logged out"
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/validate": {
+      "post": {
+        "summary": "Validate a JWT token",
+        "tags": [
+          "Auth",
+          "API Gateway"
+        ],
+        "description": "Used by the API Gateway or other microservices to validate an access token. Checks signature, expiration, and Redis blocklist.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "description": "JWT access token to validate",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "valid",
+                    "payload"
+                  ],
+                  "properties": {
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "required": [
+                        "sub",
+                        "email",
+                        "role",
+                        "jti",
+                        "iat",
+                        "exp",
+                        "iss"
+                      ],
+                      "properties": {
+                        "sub": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        },
+                        "jti": {
+                          "type": "string"
+                        },
+                        "iat": {
+                          "type": "number"
+                        },
+                        "exp": {
+                          "type": "number"
+                        },
+                        "iss": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/auth/.well-known/jwks.json": {
+      "get": {
+        "summary": "JSON Web Key Set (JWKS)",
+        "tags": [
+          "Auth",
+          "OIDC"
+        ],
+        "description": "Public endpoint that exposes the RS256 public key for JWT verification. Other microservices can use this to verify tokens without shared secrets.",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "keys"
+                  ],
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/users/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "tags": [
+          "Users"
+        ],
+        "description": "Returns the profile of the authenticated user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "status",
+                    "emailVerified",
+                    "socialProviders",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "role": {
+                      "enum": [
+                        "USER",
+                        "ADMIN"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "ACTIVE",
+                        "INACTIVE"
+                      ],
+                      "type": "string"
+                    },
+                    "emailVerified": {
+                      "description": "Whether the user email has been verified",
+                      "type": "boolean"
+                    },
+                    "socialProviders": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/users": {
+      "get": {
+        "summary": "List all users (Admin only)",
+        "tags": [
+          "Users"
+        ],
+        "description": "Returns a paginated list of users. Supports filtering by role, status, and search by name/email.",
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            },
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "description": "Page number"
+          },
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "description": "Items per page"
+          },
+          {
+            "schema": {
+              "enum": [
+                "USER",
+                "ADMIN"
+              ],
+              "type": "string"
+            },
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "description": "Filter by role"
+          },
+          {
+            "schema": {
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ],
+              "type": "string"
+            },
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "description": "Filter by status"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "description": "Search by name or email"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "email",
+                          "role",
+                          "status",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "number"
+                    },
+                    "page": {
+                      "type": "number"
+                    },
+                    "limit": {
+                      "type": "number"
+                    },
+                    "totalPages": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "tags": [
+          "Users"
+        ],
+        "description": "Returns user details by ID. Admins can view any user; regular users can only view themselves.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "User ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "status",
+                    "emailVerified",
+                    "socialProviders",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "role": {
+                      "enum": [
+                        "USER",
+                        "ADMIN"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "ACTIVE",
+                        "INACTIVE"
+                      ],
+                      "type": "string"
+                    },
+                    "emailVerified": {
+                      "description": "Whether the user email has been verified",
+                      "type": "boolean"
+                    },
+                    "socialProviders": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user",
+        "tags": [
+          "Users"
+        ],
+        "description": "Updates user profile. Users can update their own profile; admins can update any user and change roles.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "email": {
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "type": "string"
+                  },
+                  "role": {
+                    "enum": [
+                      "USER",
+                      "ADMIN"
+                    ],
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "User ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "status",
+                    "emailVerified",
+                    "socialProviders",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "role": {
+                      "enum": [
+                        "USER",
+                        "ADMIN"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "ACTIVE",
+                        "INACTIVE"
+                      ],
+                      "type": "string"
+                    },
+                    "emailVerified": {
+                      "description": "Whether the user email has been verified",
+                      "type": "boolean"
+                    },
+                    "socialProviders": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deactivate user (soft delete)",
+        "tags": [
+          "Users"
+        ],
+        "description": "Sets user status to INACTIVE and revokes all refresh tokens. Users can deactivate themselves; admins can deactivate any user.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "User ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deactivated"
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/authentication_api/api/v1/client-apps": {
+      "post": {
+        "summary": "Register a new client application (Admin only)",
+        "tags": [
+          "Client Apps"
+        ],
+        "description": "Registers a third-party application that can use this IdP. Returns clientId and clientSecret (secret shown only once).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "redirectUrls"
+                ],
+                "properties": {
+                  "name": {
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "description": "Application name",
+                    "type": "string"
+                  },
+                  "redirectUrls": {
+                    "minItems": 1,
+                    "description": "Allowed redirect URLs",
+                    "type": "array",
+                    "items": {
+                      "format": "uri",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "clientId",
+                    "redirectUrls",
+                    "isActive",
+                    "createdAt"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "description": "Only returned at creation time",
+                      "type": "string"
+                    },
+                    "redirectUrls": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List all client applications (Admin only)",
+        "tags": [
+          "Client Apps"
+        ],
+        "description": "Returns all registered client applications. Client secrets are not included.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "clientId",
+                      "redirectUrls",
+                      "isActive",
+                      "createdAt"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "redirectUrls": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "code",
+                    "message"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints (login, register, refresh, logout)"
+    },
+    {
+      "name": "Social Login",
+      "description": "Social provider authentication (Google, Apple, etc.)"
+    },
+    {
+      "name": "Users",
+      "description": "User CRUD operations"
+    },
+    {
+      "name": "Client Apps",
+      "description": "Third-party application management"
+    },
+    {
+      "name": "API Gateway",
+      "description": "Endpoints for API Gateway integration"
+    },
+    {
+      "name": "OIDC",
+      "description": "OpenID Connect discovery endpoints"
+    }
+  ]
+}
