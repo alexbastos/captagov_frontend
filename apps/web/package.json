@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && rm -rf node_modules/next node_modules/react node_modules/react-dom && cp -RL ../../node_modules/.pnpm/next@*/node_modules/next node_modules/next || true && cp -RL ../../node_modules/.pnpm/react@*/node_modules/react node_modules/react || true && cp -RL ../../node_modules/.pnpm/react-dom@*/node_modules/react-dom node_modules/react-dom || true && rm -rf .next/cache node_modules/next/dist/compiled/webpack node_modules/next/dist/compiled/next-devtools node_modules/next/dist/compiled/babel node_modules/next/dist/compiled/babel-packages node_modules/next/dist/compiled/@babel node_modules/next/dist/compiled/terser",
+    "build": "next build && rm -rf node_modules/next node_modules/react node_modules/react-dom && cp -RL ../../node_modules/.pnpm/next@*/node_modules/next node_modules/next || true && cp -RL ../../node_modules/.pnpm/react@*/node_modules/react node_modules/react || true && cp -RL ../../node_modules/.pnpm/react-dom@*/node_modules/react-dom node_modules/react-dom || true && rm -rf .next/cache node_modules/next/dist/compiled",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
