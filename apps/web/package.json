@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && cp -R .next/standalone/node_modules ./",
+    "build": "next build && mkdir -p node_modules && cp -R ../../node_modules/next node_modules/next",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
