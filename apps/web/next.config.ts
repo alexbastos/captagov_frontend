@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  transpilePackages: ["@capta/api-client"],
   devIndicators: false,
   async headers() {
     return [
