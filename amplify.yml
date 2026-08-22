@@ -10,6 +10,8 @@ applications:
         build:
           commands:
             - pnpm --dir ../.. run build
+            - rm -rf node_modules
+            - cp -rL .next/standalone/apps/web/node_modules .
       artifacts:
         baseDirectory: .next
         files:
