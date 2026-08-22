@@ -68,7 +68,7 @@ function AuthTransitionProvider({ children }: { children: ReactNode }) {
     previousPathnameRef.current = pathname
 
     setTransition((currentTransition) => {
-      if (currentTransition?.destination !== pathname) {
+      if (!currentTransition || currentTransition.destination !== pathname) {
         transitionLockRef.current = false
         transitionRef.current = null
         return null
