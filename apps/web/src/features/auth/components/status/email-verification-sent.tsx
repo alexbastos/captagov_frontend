@@ -126,7 +126,7 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
             Ainda não possui uma conta?{" "}
-            <AuthNavLink className="font-semibold text-capta-text-primary" href="/cadastro">
+            <AuthNavLink className="font-semibold text-capta-text-primary" href="/register">
               Criar conta
             </AuthNavLink>
           </p>

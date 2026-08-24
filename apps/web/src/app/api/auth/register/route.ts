@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     response.cookies.set(PENDING_VERIFICATION_EMAIL_COOKIE_NAME, input.email, {
       httpOnly: true,
       maxAge: PENDING_VERIFICATION_EMAIL_MAX_AGE_SECONDS,
-      path: "/cadastro/verifique-email",
+      path: "/register/check-email",
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     })

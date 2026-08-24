@@ -40,11 +40,11 @@ type AuthTransitionContextValue = {
 const AuthTransitionContext = createContext<AuthTransitionContextValue | null>(null)
 
 function getAuthVisualMode(pathname: string): AuthVisualMode {
-  if (pathname === "/cadastro/verifique-email" || pathname === "/verificar-email") {
+  if (pathname === "/register/check-email" || pathname === "/verify-email") {
     return "confirmation"
   }
 
-  return pathname === "/esqueci-senha" || pathname === "/redefinir-senha" ? "recovery" : "split"
+  return pathname === "/forgot-password" || pathname === "/reset-password" ? "recovery" : "split"
 }
 
 function AuthTransitionProvider({ children }: { children: ReactNode }) {

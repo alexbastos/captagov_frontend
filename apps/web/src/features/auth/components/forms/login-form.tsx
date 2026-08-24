@@ -63,7 +63,7 @@ function LoginForm({ redirectTo }: LoginFormProps) {
         </div>
 
         <p className="text-right text-ui text-capta-text-secondary" data-login-step>
-          <AuthNavLink className="font-semibold text-capta-text-primary" href="/esqueci-senha">
+          <AuthNavLink className="font-semibold text-capta-text-primary" href="/forgot-password">
             Esqueceu sua senha?
           </AuthNavLink>
         </p>
@@ -79,7 +79,7 @@ function LoginForm({ redirectTo }: LoginFormProps) {
         Ainda não possui uma conta?{" "}
         <AuthNavLink
           className="font-semibold text-capta-text-primary"
-          href="/cadastro"
+          href="/register"
         >
           Criar conta
         </AuthNavLink>
