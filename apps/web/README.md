@@ -40,17 +40,40 @@ O resolvedor server-only de sessão consulta `/users/me`. Se o access token rece
 
 O [Proxy do Next.js 16](https://nextjs.org/docs/app/api-reference/file-conventions/proxy) cobre apenas `/app` e subrotas. Ele redireciona rapidamente ao login quando o cookie de access token não está presente, preservando o destino interno em `from`; não valida nem renova tokens.
 
-## Learn More
+## Deploy e Atualização (Docker na AWS EC2)
 
-To learn more about Next.js, take a look at the following resources:
+A infraestrutura e o deploy deste frontend são gerenciados pelo projeto Terraform `captagov_terraform`. O processo de deploy está configurado para atualizar e recriar a imagem Docker na EC2 sempre que o Terraform é aplicado.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para atualizar a aplicação em produção, siga uma das abordagens abaixo:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Opção 1: Via Terraform (Recomendado e Automatizado)
+O script do Terraform foi configurado para conectar na EC2, fazer o clone/pull do repositório, efetuar o build do Docker e reiniciar o contêiner na porta 3001.
 
-## Deploy on Vercel
+1. **Envie as alterações para o repositório remoto:** A EC2 baixa as atualizações diretamente do GitHub.
+   ```bash
+   git add .
+   git commit -m "Sua mensagem de atualização"
+   git push origin master
+   ```
+2. **Execute o script de infraestrutura:**
+   ```bash
+   cd ../captagov_terraform
+   terraform apply
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Opção 2: Manualmente via SSH
+Caso precise intervir manualmente, acesse a instância e execute os passos:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Acesse a instância EC2 via SSH:**
+   ```bash
+   ssh -i ~/.ssh/id_rsa ubuntu@<IP_DA_EC2>
+   ```
+2. **Atualize o código e recrie o contêiner Docker:**
+   ```bash
+   cd /home/ubuntu/captagov_frontend
+   git pull origin master
+   docker build -t captagov-frontend .
+   docker stop captagov-frontend-container || true
+   docker rm captagov-frontend-container || true
+   docker run -d --restart unless-stopped --name captagov-frontend-container -p 3001:3000 --env-file .env captagov-frontend
+   ```
