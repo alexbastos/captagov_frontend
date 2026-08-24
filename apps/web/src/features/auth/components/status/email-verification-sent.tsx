@@ -3,13 +3,14 @@
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { InputField } from "@/components/ui/input-field"
-import { cn } from "@/lib/utils"
 
 import { useEmailVerificationSentEntrance } from "../../hooks/animations/use-email-verification-sent-entrance"
+import { useAuthTransitionNav } from "../../hooks/animations/use-auth-transition-nav"
 import { authBffClient } from "../../services/auth-bff-client"
 import { AuthNavLink } from "../navigation/auth-nav-link"
+import { useAuthTransition } from "../shell/auth-transition-provider"
 
 type EmailVerificationSentProps = {
   email?: string
@@ -31,6 +32,8 @@ function hasPendingVerificationEmail(email?: string): email is string {
 
 function EmailVerificationSent({ email }: EmailVerificationSentProps) {
   const sectionRef = useRef<HTMLElement>(null)
+  const { navigateWithExit } = useAuthTransitionNav()
+  const { isTransitioning } = useAuthTransition()
   const [isResending, setIsResending] = useState(false)
 
   useEmailVerificationSentEntrance(sectionRef)
@@ -87,12 +90,14 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
           </div>
 
           <div data-email-verification-step>
-            <AuthNavLink
-              className={cn(buttonVariants({ className: "w-full" }))}
-              href="/login"
+            <Button
+              className="w-full"
+              disabled={isTransitioning}
+              onClick={() => navigateWithExit("/login")}
+              type="button"
             >
               Já confirmei meu e-mail
-            </AuthNavLink>
+            </Button>
           </div>
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
@@ -119,9 +124,14 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
           </header>
 
           <div data-email-verification-step>
-            <AuthNavLink className={cn(buttonVariants({ className: "w-full" }))} href="/login">
+            <Button
+              className="w-full"
+              disabled={isTransitioning}
+              onClick={() => navigateWithExit("/login")}
+              type="button"
+            >
               Ir para login
-            </AuthNavLink>
+            </Button>
           </div>
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
