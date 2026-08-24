@@ -30,7 +30,7 @@ function useRegistrationConfirmationFlow() {
         return false
       }
 
-      const targetPath = "/cadastro/verifique-email"
+      const targetPath = "/register/check-email"
 
       timelineRef.current?.kill()
       unregisterMotionRef.current?.()

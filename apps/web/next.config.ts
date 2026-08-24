@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/redefinir-senha",
+        source: "/reset-password",
         headers: [
           {
             key: "Referrer-Policy",
@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/verificar-email",
+        source: "/verify-email",
         headers: [
           {
             key: "Referrer-Policy",

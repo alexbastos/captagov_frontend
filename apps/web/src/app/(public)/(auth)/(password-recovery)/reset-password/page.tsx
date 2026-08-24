@@ -17,7 +17,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   const resetToken = typeof token === "string" ? token.trim() : undefined
 
   if (!resetToken) {
-    redirect("/esqueci-senha")
+    redirect("/forgot-password")
   }
 
   return <ResetPasswordForm token={resetToken} />

@@ -93,7 +93,7 @@ function InvalidVerificationLink({ sectionRef }: { sectionRef: RefObject<HTMLEle
       </header>
 
       <div data-email-verification-handler-step>
-        <AuthNavLink className={cn(buttonVariants({ className: "w-full" }))} href="/cadastro">
+        <AuthNavLink className={cn(buttonVariants({ className: "w-full" }))} href="/register">
           Solicitar novo link
         </AuthNavLink>
       </div>
