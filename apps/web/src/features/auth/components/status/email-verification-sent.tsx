@@ -3,9 +3,8 @@
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { InputField } from "@/components/ui/input-field"
-import { cn } from "@/lib/utils"
 
 import { useEmailVerificationSentEntrance } from "../../hooks/animations/use-email-verification-sent-entrance"
 import { useAuthTransitionNav } from "../../hooks/animations/use-auth-transition-nav"
@@ -125,9 +124,14 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
           </header>
 
           <div data-email-verification-step>
-            <AuthNavLink className={cn(buttonVariants({ className: "w-full" }))} href="/login">
+            <Button
+              className="w-full"
+              disabled={isTransitioning}
+              onClick={() => navigateWithExit("/login")}
+              type="button"
+            >
               Ir para login
-            </AuthNavLink>
+            </Button>
           </div>
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
