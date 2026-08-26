@@ -3,11 +3,12 @@
 import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 
 import { homeNavigationItem, primaryNavigationItems, supportNavigationItems } from "./app-navigation"
+import { useUnsavedChangesGuard } from "./unsaved-changes-guard"
 import type { AppNavigationItem, AppSidebarProps, AppSidebarState } from "./types"
 
 function AppSidebar({ mode = "desktop", onDismiss, onNavigate, onStateChange, state = "expanded" }: AppSidebarProps) {
@@ -85,6 +86,8 @@ type NavigationItemProps = {
 
 function NavigationItem({ item, onNavigate, state }: NavigationItemProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { requestNavigation } = useUnsavedChangesGuard()
   const isHome = item.href === "/app"
   const isActive = isHome ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`)
   const Icon = item.icon
@@ -101,7 +104,22 @@ function NavigationItem({ item, onNavigate, state }: NavigationItemProps) {
         isCollapsed ? "justify-center" : "gap-3 px-3",
       )}
       href={item.href}
-      onClick={onNavigate}
+      onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+          return
+        }
+
+        if (item.href === pathname) {
+          onNavigate?.()
+          return
+        }
+
+        event.preventDefault()
+        requestNavigation(() => {
+          onNavigate?.()
+          router.push(item.href)
+        })
+      }}
       title={isCollapsed ? item.label : undefined}
     >
       <Icon aria-hidden="true" className="size-[1.125rem] shrink-0" />

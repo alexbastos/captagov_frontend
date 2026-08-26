@@ -29,6 +29,7 @@ type TypedApiRequest<Path extends ApiPath, Method extends ApiMethod<Path>> = {
   path: Path
   method: Method
   headers?: HeadersInit
+  pathParams?: Record<string, string>
   signal?: AbortSignal
 } &
   BodyProperty<ApiOperation<Path, Method>>
@@ -80,7 +81,7 @@ class ApiHttpClient {
     }
 
     try {
-      const response = await this.fetchImplementation(this.resolveUrl(request.path), {
+      const response = await this.fetchImplementation(this.resolveUrl(request.path, request.pathParams), {
         body: request.body === undefined ? undefined : JSON.stringify(request.body),
         cache: "no-store",
         headers,
@@ -99,8 +100,17 @@ class ApiHttpClient {
     }
   }
 
-  private resolveUrl(path: string) {
-    const url = new URL(path, this.baseUrl)
+  private resolveUrl(path: string, pathParams?: Record<string, string>) {
+    const resolvedPath = path.replace(/\{([^}]+)\}/g, (placeholder, name: string) => {
+      const value = pathParams?.[name]
+
+      if (!value) {
+        throw new Error(`Missing API path parameter: ${name}`)
+      }
+
+      return encodeURIComponent(value)
+    })
+    const url = new URL(resolvedPath, this.baseUrl)
 
     if (url.origin !== this.baseUrl.origin) {
       throw new Error("The API path must resolve to the configured API origin")

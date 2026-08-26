@@ -5,18 +5,25 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { createAuthenticationApiClient } from "./authentication-api"
+import { isBrazilianPhone, isBrazilianPostalCode } from "../brazilian-input"
 import { getServerEnvironment } from "./environment"
 import { assertTrustedRequestOrigin, InvalidRequestOriginError } from "./request-security"
 
 type AuthenticationAction =
+  | "change-password"
   | "forgot-password"
+  | "link-social-account"
   | "login"
+  | "login-history"
   | "logout"
   | "register"
   | "reset-password"
   | "resend-verification"
+  | "revoke-session"
   | "session"
   | "social-login"
+  | "unlink-social-account"
+  | "update-profile"
   | "verify-email"
 
 type SessionTokens = {
@@ -89,6 +96,55 @@ const ResetPasswordRequestSchema = z
     token: z.string().trim().min(1).max(4096),
   })
   .strict()
+
+const ChangePasswordRequestSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(4096),
+    newPassword: z
+      .string()
+      .min(8)
+      .regex(/[A-Z]/)
+      .regex(/[a-z]/)
+      .regex(/[0-9]/)
+      .regex(/[^A-Za-z0-9\s]/)
+      .regex(/^\S+$/),
+  })
+  .strict()
+
+const NullableProfileFieldSchema = z.string().trim().max(500).nullable()
+
+const UpdateProfileRequestSchema = z
+  .object({
+    address: z
+      .object({
+        city: z.string().trim().max(100).nullable().optional(),
+        country: z.string().trim().length(2).nullable().optional(),
+        state: z.string().trim().max(50).nullable().optional(),
+        street: z.string().trim().max(255).nullable().optional(),
+        zipCode: z.string().trim().refine(isBrazilianPostalCode).nullable().optional(),
+      })
+      .strict()
+      .optional(),
+    avatarUrl: NullableProfileFieldSchema.optional(),
+    bio: NullableProfileFieldSchema.optional(),
+    birthDate: z.string().date().nullable().optional(),
+    email: z.string().trim().email().optional(),
+    locale: z.string().trim().max(10).nullable().optional(),
+    name: z.string().trim().min(2).max(100).optional(),
+    phone: z.string().trim().refine(isBrazilianPhone).nullable().optional(),
+    timezone: z.string().trim().max(50).nullable().optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0)
+
+const LinkSocialAccountRequestSchema = z
+  .object({
+    provider: z.enum(["GOOGLE", "APPLE", "FACEBOOK", "GITHUB"]),
+    token: z.string().trim().min(1).max(16_384),
+  })
+  .strict()
+
+const RouteIdentifierSchema = z.string().trim().min(1).max(256)
 
 function getAuthenticationRouteClient(request: Request) {
   const environment = getServerEnvironment()
@@ -213,7 +269,7 @@ function getPublicAuthenticationError(
   if (normalized.code === "CONFLICT" && action === "register") {
     return {
       code: "REGISTRATION_CONFLICT",
-      message: "Não foi possível concluir o cadastro com os dados informados.",
+      message: "Já existe uma conta com este e-mail. Entre para continuar ou use outro e-mail.",
       retryable: false,
       status: 409,
     }
@@ -297,6 +353,7 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 export {
+  ChangePasswordRequestSchema,
   createInvalidRequestResponse,
   createSuccessResponse,
   createUnauthenticatedResponse,
@@ -304,6 +361,7 @@ export {
   createUpstreamErrorResponse,
   getAuthenticationRouteClient,
   getLoginSessionTokens,
+  LinkSocialAccountRequestSchema,
   LoginRequestSchema,
   logAuthenticationFailure,
   logUnexpectedAuthenticationFailure,
@@ -311,7 +369,9 @@ export {
   RegisterRequestSchema,
   ResendVerificationRequestSchema,
   ResetPasswordRequestSchema,
+  RouteIdentifierSchema,
   SocialLoginRequestSchema,
+  UpdateProfileRequestSchema,
   VerifyEmailRequestSchema,
   ForgotPasswordRequestSchema,
 }

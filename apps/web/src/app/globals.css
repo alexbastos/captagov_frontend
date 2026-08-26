@@ -398,6 +398,19 @@
   video {
     max-width: 100%;
   }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--input-surface-default) inset;
+    -webkit-text-fill-color: var(--input-text);
+    caret-color: var(--input-text);
+  }
 }
 
 @layer components {
@@ -433,15 +446,6 @@
 
   .slide-menu-panel-forward { animation-name: slide-menu-forward; }
   .slide-menu-panel-backward { animation-name: slide-menu-backward; }
-
-  input[data-slot="input-control"]:-webkit-autofill,
-  input[data-slot="input-control"]:-webkit-autofill:hover,
-  input[data-slot="input-control"]:-webkit-autofill:focus,
-  input[data-slot="input-control"]:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px var(--input-surface-default) inset;
-    -webkit-text-fill-color: var(--input-text);
-    caret-color: var(--input-text);
-  }
 
   .motion-interactive {
     transition-duration: var(--motion-duration-fast);

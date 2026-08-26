@@ -18,7 +18,7 @@ function getAuthErrorNotification(error: AuthBffError): AuthErrorNotification {
     case "RATE_LIMITED":
       return { description: error.message, title: "Muitas tentativas" }
     case "REGISTRATION_CONFLICT":
-      return { description: error.message, title: "Não foi possível criar sua conta" }
+      return { description: error.message, title: "Esta conta já existe" }
     case "VALIDATION_ERROR":
       return { description: error.message, title: "Revise os dados informados" }
     case "NETWORK_ERROR":

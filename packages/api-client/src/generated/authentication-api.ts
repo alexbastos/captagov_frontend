@@ -392,7 +392,11 @@ export interface paths {
         put?: never;
         /**
          * Resend verification email
-         * @description Requests a new verification email without exposing whether the address has a pending account. Rate limited by IP and e-mail cooldown.
+         * @description Resends the verification email to the given address. Always returns success to prevent user enumeration.
+         *
+         *     **Security Protections:**
+         *     - Rate Limited to 3 requests per 15 minutes per IP.
+         *     - Cooldown mechanism: will silently ignore requests if the last token was generated less than 2 minutes ago.
          */
         post: {
             parameters: {
@@ -406,7 +410,7 @@ export interface paths {
                     "application/json": {
                         /**
                          * Format: email
-                         * @description E-mail address associated with the pending verification
+                         * @description User email address
                          */
                         email: string;
                     };
@@ -914,6 +918,32 @@ export interface paths {
                             /** @description Whether the user email has been verified */
                             emailVerified: boolean;
                             socialProviders: string[];
+                            profile: {
+                                /** @description Avatar/profile picture URL */
+                                avatarUrl: string | null;
+                                /** @description Phone number */
+                                phone: string | null;
+                                /** @description Date of birth (YYYY-MM-DD) */
+                                birthDate: string | null;
+                                /** @description Short bio/description */
+                                bio: string | null;
+                                /** @description User locale (e.g. "pt-BR") */
+                                locale: string | null;
+                                /** @description User timezone (e.g. "America/Sao_Paulo") */
+                                timezone: string | null;
+                                address: {
+                                    /** @description Street address */
+                                    street: string | null;
+                                    /** @description City */
+                                    city: string | null;
+                                    /** @description State/Province */
+                                    state: string | null;
+                                    /** @description Zip/Postal code */
+                                    zipCode: string | null;
+                                    /** @description Country (ISO 3166-1 alpha-2, e.g. "BR") */
+                                    country: string | null;
+                                };
+                            };
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -1078,6 +1108,32 @@ export interface paths {
                             /** @description Whether the user email has been verified */
                             emailVerified: boolean;
                             socialProviders: string[];
+                            profile: {
+                                /** @description Avatar/profile picture URL */
+                                avatarUrl: string | null;
+                                /** @description Phone number */
+                                phone: string | null;
+                                /** @description Date of birth (YYYY-MM-DD) */
+                                birthDate: string | null;
+                                /** @description Short bio/description */
+                                bio: string | null;
+                                /** @description User locale (e.g. "pt-BR") */
+                                locale: string | null;
+                                /** @description User timezone (e.g. "America/Sao_Paulo") */
+                                timezone: string | null;
+                                address: {
+                                    /** @description Street address */
+                                    street: string | null;
+                                    /** @description City */
+                                    city: string | null;
+                                    /** @description State/Province */
+                                    state: string | null;
+                                    /** @description Zip/Postal code */
+                                    zipCode: string | null;
+                                    /** @description Country (ISO 3166-1 alpha-2, e.g. "BR") */
+                                    country: string | null;
+                                };
+                            };
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -1138,6 +1194,19 @@ export interface paths {
                         password?: string;
                         /** @enum {string} */
                         role?: "USER" | "ADMIN";
+                        avatarUrl?: string | null;
+                        phone?: string | null;
+                        birthDate?: string | null;
+                        bio?: string | null;
+                        locale?: string | null;
+                        timezone?: string | null;
+                        address?: {
+                            street?: string | null;
+                            city?: string | null;
+                            state?: string | null;
+                            zipCode?: string | null;
+                            country?: string | null;
+                        };
                     };
                 };
             };
@@ -1160,6 +1229,32 @@ export interface paths {
                             /** @description Whether the user email has been verified */
                             emailVerified: boolean;
                             socialProviders: string[];
+                            profile: {
+                                /** @description Avatar/profile picture URL */
+                                avatarUrl: string | null;
+                                /** @description Phone number */
+                                phone: string | null;
+                                /** @description Date of birth (YYYY-MM-DD) */
+                                birthDate: string | null;
+                                /** @description Short bio/description */
+                                bio: string | null;
+                                /** @description User locale (e.g. "pt-BR") */
+                                locale: string | null;
+                                /** @description User timezone (e.g. "America/Sao_Paulo") */
+                                timezone: string | null;
+                                address: {
+                                    /** @description Street address */
+                                    street: string | null;
+                                    /** @description City */
+                                    city: string | null;
+                                    /** @description State/Province */
+                                    state: string | null;
+                                    /** @description Zip/Postal code */
+                                    zipCode: string | null;
+                                    /** @description Country (ISO 3166-1 alpha-2, e.g. "BR") */
+                                    country: string | null;
+                                };
+                            };
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -1316,6 +1411,9 @@ export interface paths {
                             clientId: string;
                             redirectUrls: string[];
                             isActive: boolean;
+                            grantTypes: string[];
+                            scopes: string[];
+                            tokenEndpointAuth: string;
                             /** Format: date-time */
                             createdAt: string;
                         }[];
@@ -1370,6 +1468,12 @@ export interface paths {
                         name: string;
                         /** @description Allowed redirect URLs */
                         redirectUrls: string[];
+                        /** @description OAuth grant types (e.g. authorization_code) */
+                        grantTypes?: string[];
+                        /** @description Allowed OAuth scopes */
+                        scopes?: string[];
+                        /** @description Client authentication method (e.g. client_secret_post) */
+                        tokenEndpointAuth?: string;
                     };
                 };
             };
@@ -1388,6 +1492,9 @@ export interface paths {
                             clientSecret?: string;
                             redirectUrls: string[];
                             isActive: boolean;
+                            grantTypes: string[];
+                            scopes: string[];
+                            tokenEndpointAuth: string;
                             /** Format: date-time */
                             createdAt: string;
                         };
@@ -1418,6 +1525,2351 @@ export interface paths {
                             error: string;
                             code: string;
                             message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/users/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active sessions
+         * @description Returns all active sessions (non-revoked, non-expired refresh tokens) for the authenticated user, including device, IP, and User-Agent metadata.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sessions: {
+                                /** @description Session (refresh token) ID */
+                                id: string;
+                                /** @description Parsed device name (e.g. "Chrome 120 - macOS") */
+                                deviceName: string | null;
+                                /** @description IP address from the login */
+                                ipAddress: string | null;
+                                /** @description Raw User-Agent header */
+                                userAgent: string | null;
+                                /**
+                                 * Format: date-time
+                                 * @description When the session was created
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the session expires
+                                 */
+                                expiresAt: string;
+                                /** @description True if this is the current session */
+                                isCurrent: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/users/me/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke a specific session
+         * @description Revokes a specific session by ID. The user can only revoke their own sessions. Useful for logging out a lost device without affecting other sessions.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Session ID to revoke */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Session revoked successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/users/me/login-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get login history
+         * @description Returns a paginated list of login attempts (success and failure) for the authenticated user. Includes IP, device, method, and failure reason.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Page number */
+                    page?: number;
+                    /** @description Items per page */
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                email: string;
+                                /**
+                                 * @description Login attempt result
+                                 * @enum {string}
+                                 */
+                                status: "SUCCESS" | "FAILURE";
+                                /**
+                                 * @description Authentication method used
+                                 * @enum {string}
+                                 */
+                                method: "EMAIL_PASSWORD" | "SOCIAL_GOOGLE" | "SOCIAL_APPLE" | "SOCIAL_FACEBOOK" | "SOCIAL_GITHUB";
+                                ipAddress: string | null;
+                                userAgent: string | null;
+                                deviceName: string | null;
+                                /** @description Reason for failure (null if success) */
+                                failReason: string | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            total: number;
+                            page: number;
+                            limit: number;
+                            totalPages: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/users/me/social": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link a social account
+         * @description Links a social provider (Google, Apple, etc.) to the authenticated user account. Validates the social token before linking. If already linked, returns a success message.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Social provider to link
+                         * @enum {string}
+                         */
+                        provider: "GOOGLE" | "APPLE" | "FACEBOOK" | "GITHUB";
+                        /** @description ID token or access token from the social provider */
+                        token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            provider: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/users/me/social/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Unlink a social account
+         * @description Removes a social provider link from the authenticated user account. Will fail if this is the last authentication method (no password and no other social provider).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Social provider to unlink */
+                    provider: "GOOGLE" | "APPLE" | "FACEBOOK" | "GITHUB";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            provider: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List my organizations
+         * @description Returns all organizations the authenticated user is a member of, with their role.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            slug: string;
+                            description: string | null;
+                            logoUrl: string | null;
+                            isActive: boolean;
+                            /** @description Your role in the organization */
+                            memberRole: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create organization
+         * @description Creates a new organization. The authenticated user becomes the OWNER.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Organization name */
+                        name: string;
+                        /** @description URL-friendly slug (lowercase, hyphens only) */
+                        slug: string;
+                        /** @description Short description */
+                        description?: string;
+                        /** @description Logo URL */
+                        logoUrl?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            slug: string;
+                            description: string | null;
+                            logoUrl: string | null;
+                            isActive: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/{orgId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get organization details
+         * @description Returns organization details. Requires membership.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            slug: string;
+                            description: string | null;
+                            logoUrl: string | null;
+                            isActive: boolean;
+                            /** @description Your role in the organization */
+                            memberRole: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Update organization
+         * @description Updates organization details. Requires OWNER or ADMIN role.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        description?: string | null;
+                        logoUrl?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            slug: string;
+                            description: string | null;
+                            logoUrl: string | null;
+                            isActive: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/{orgId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List organization members
+         * @description Returns all members of the organization. Requires membership.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            organizationId: string;
+                            role: string;
+                            /** Format: date-time */
+                            joinedAt: string;
+                            userName?: string;
+                            userEmail?: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/{orgId}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invite member
+         * @description Sends an invitation to join the organization. Requires OWNER or ADMIN role. Returns the invitation with a plain token for email delivery.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: email
+                         * @description Email address to invite
+                         */
+                        email: string;
+                        /**
+                         * @description Role to assign (OWNER cannot be assigned via invite)
+                         * @default MEMBER
+                         * @enum {string}
+                         */
+                        role?: "ADMIN" | "MEMBER" | "VIEWER";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            email: string;
+                            organizationId: string;
+                            role: string;
+                            invitedBy: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            acceptedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            organizationName?: string;
+                            /** @description Plain token (only on creation) */
+                            token?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept invitation
+         * @description Accepts an organization invitation using the token received via email. The authenticated user is added as a member with the invited role.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Invitation token received via email */
+                        token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            organizationId: string;
+                            organizationName?: string;
+                            role: string;
+                            member: {
+                                id: string;
+                                userId: string;
+                                organizationId: string;
+                                role: string;
+                                /** Format: date-time */
+                                joinedAt: string;
+                                userName?: string;
+                                userEmail?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/{orgId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove member
+         * @description Removes a member from the organization. Requires OWNER or ADMIN role. The OWNER cannot be removed.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                    /** @description User ID of the member */
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Member removed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/organizations/{orgId}/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change member role
+         * @description Changes a member's role. Only the OWNER can change roles. The OWNER's own role cannot be changed.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Organization ID */
+                    orgId: string;
+                    /** @description User ID of the member */
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description New role (OWNER cannot be assigned)
+                         * @enum {string}
+                         */
+                        role: "ADMIN" | "MEMBER" | "VIEWER";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            organizationId: string;
+                            role: string;
+                            /** Format: date-time */
+                            joinedAt: string;
+                            userName?: string;
+                            userEmail?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all permissions
+         * @description Returns all available permissions, optionally filtered by category.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    category?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            code: string;
+                            description: string | null;
+                            category: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all roles
+         * @description Returns all roles (system + custom) with their permissions.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            organizationId: string | null;
+                            isSystem: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            permissions: {
+                                id: string;
+                                code: string;
+                                description: string | null;
+                                category: string;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create custom role
+         * @description Creates a new custom role with specified permissions. System roles cannot be created via this endpoint.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Role name */
+                        name: string;
+                        /** @description Role description */
+                        description?: string;
+                        /** @description Organization scope (null = global) */
+                        organizationId?: string | null;
+                        /** @description Permission codes to assign */
+                        permissionCodes: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            organizationId: string | null;
+                            isSystem: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            permissions: {
+                                id: string;
+                                code: string;
+                                description: string | null;
+                                category: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get role details
+         * @description Returns a role with all its permissions.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Custom Role ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            organizationId: string | null;
+                            isSystem: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            permissions: {
+                                id: string;
+                                code: string;
+                                description: string | null;
+                                category: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Update custom role
+         * @description Updates name, description, or permissions of a custom role. System roles cannot be modified.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Custom Role ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        description?: string | null;
+                        permissionCodes?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            organizationId: string | null;
+                            isSystem: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            permissions: {
+                                id: string;
+                                code: string;
+                                description: string | null;
+                                category: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete custom role
+         * @description Deletes a custom role. System roles cannot be deleted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Custom Role ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Role deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/users/{id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign role to user
+         * @description Assigns a role to a user, optionally scoped to an organization.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description User ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Role ID to assign */
+                        roleId: string;
+                        /** @description Organization scope */
+                        organizationId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/users/{id}/roles/{roleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove role from user
+         * @description Removes a role assignment from a user.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description User ID */
+                    id: string;
+                    /** @description Role ID */
+                    roleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Role removed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/rbac/users/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user effective permissions
+         * @description Returns all effective permissions for a user across all assigned roles.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description User ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            userId: string;
+                            permissions: string[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List webhooks */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            url: string;
+                            /** @description HMAC signing secret (only shown once on creation) */
+                            secret: string;
+                            events: string[];
+                            organizationId: string | null;
+                            isActive: boolean;
+                            description: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Register webhook endpoint
+         * @description Registers a new webhook endpoint. The HMAC secret is auto-generated and returned only once.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uri
+                         * @description Webhook delivery URL (HTTPS recommended)
+                         */
+                        url: string;
+                        /** @description Events to subscribe to */
+                        events: ("USER_CREATED" | "USER_UPDATED" | "USER_DELETED" | "USER_LOGIN" | "USER_LOGOUT" | "USER_PASSWORD_CHANGED" | "USER_EMAIL_VERIFIED" | "ORG_CREATED" | "ORG_MEMBER_ADDED" | "ORG_MEMBER_REMOVED")[];
+                        organizationId?: string | null;
+                        description?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            url: string;
+                            /** @description HMAC signing secret (only shown once on creation) */
+                            secret: string;
+                            events: string[];
+                            organizationId: string | null;
+                            isActive: boolean;
+                            description: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/webhooks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get webhook details */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Webhook Endpoint ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            url: string;
+                            /** @description HMAC signing secret (only shown once on creation) */
+                            secret: string;
+                            events: string[];
+                            organizationId: string | null;
+                            isActive: boolean;
+                            description: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        /** Update webhook */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Webhook Endpoint ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        url?: string;
+                        events?: ("USER_CREATED" | "USER_UPDATED" | "USER_DELETED" | "USER_LOGIN" | "USER_LOGOUT" | "USER_PASSWORD_CHANGED" | "USER_EMAIL_VERIFIED" | "ORG_CREATED" | "ORG_MEMBER_ADDED" | "ORG_MEMBER_REMOVED")[];
+                        description?: string | null;
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            url: string;
+                            /** @description HMAC signing secret (only shown once on creation) */
+                            secret: string;
+                            events: string[];
+                            organizationId: string | null;
+                            isActive: boolean;
+                            description: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete webhook */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Webhook Endpoint ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Webhook deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/webhooks/{id}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List webhook deliveries
+         * @description Returns the delivery history for a webhook endpoint.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Webhook Endpoint ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            endpointId: string;
+                            event: string;
+                            payload: unknown;
+                            status: string;
+                            attempts: number;
+                            lastAttempt: string | null;
+                            nextRetry: string | null;
+                            responseCode: number | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/authentication_api/api/v1/webhooks/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send test event
+         * @description Dispatches a test webhook event to verify delivery.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Webhook Endpoint ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/oauth/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** OAuth 2.0 Authorization Endpoint */
+        get: {
+            parameters: {
+                query: {
+                    response_type: string;
+                    client_id: string;
+                    redirect_uri: string;
+                    scope?: string;
+                    state?: string;
+                    code_challenge?: string;
+                    code_challenge_method?: string;
+                    nonce?: string;
+                    prompt?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Redirects to redirect_uri with code or error */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            client_id: string;
+                            scope?: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/oauth/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grant OAuth Consent */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        client_id: string;
+                        scopes: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/oauth/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** OAuth 2.0 Token Endpoint */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        grant_type: string;
+                        code: string;
+                        /** Format: uri */
+                        redirect_uri: string;
+                        client_id: string;
+                        client_secret?: string;
+                        code_verifier?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            access_token: string;
+                            /** @enum {string} */
+                            token_type: "Bearer";
+                            expires_in: number;
+                            id_token?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            code: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/oauth/userinfo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** OIDC UserInfo Endpoint */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sub: string;
+                            name?: string;
+                            email?: string;
+                            email_verified?: boolean;
+                            updated_at?: number;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** OIDC UserInfo Endpoint */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sub: string;
+                            name?: string;
+                            email?: string;
+                            email_verified?: boolean;
+                            updated_at?: number;
+                        } & {
+                            [key: string]: unknown;
                         };
                     };
                 };
