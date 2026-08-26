@@ -11,16 +11,23 @@ const RESEND_VERIFICATION_PATH = "/authentication_api/api/v1/auth/resend-verific
 const REFRESH_PATH = "/authentication_api/api/v1/auth/refresh" as const
 const LOGOUT_PATH = "/authentication_api/api/v1/auth/logout" as const
 const CURRENT_USER_PATH = "/authentication_api/api/v1/users/me" as const
+const USER_PATH = "/authentication_api/api/v1/users/{id}" as const
+const CHANGE_PASSWORD_PATH = "/authentication_api/api/v1/auth/change-password" as const
+const ACTIVE_SESSIONS_PATH = "/authentication_api/api/v1/users/me/sessions" as const
+const ACTIVE_SESSION_PATH = "/authentication_api/api/v1/users/me/sessions/{id}" as const
+const LOGIN_HISTORY_PATH = "/authentication_api/api/v1/users/me/login-history" as const
+const SOCIAL_ACCOUNTS_PATH = "/authentication_api/api/v1/users/me/social" as const
+const SOCIAL_ACCOUNT_PATH = "/authentication_api/api/v1/users/me/social/{provider}" as const
 
 type AuthenticationPath = keyof paths
 
-type JsonPostRequest<Path extends AuthenticationPath> = paths[Path] extends {
-  post: { requestBody: { content: { "application/json": infer Body } } }
+type JsonRequest<Path extends AuthenticationPath, Method extends "post" | "put"> = paths[Path] extends {
+  [Key in Method]: { requestBody: { content: { "application/json": infer Body } } }
 }
   ? Body
   : never
 
-type JsonResponse<Path extends AuthenticationPath, Method extends "get" | "post", Status extends number> =
+type JsonResponse<Path extends AuthenticationPath, Method extends "delete" | "get" | "post" | "put", Status extends number> =
   paths[Path] extends { [Key in Method]: { responses: infer Responses } }
     ? Responses extends Record<Status, infer Response>
       ? Response extends { content: { "application/json": infer Body } }
@@ -29,15 +36,18 @@ type JsonResponse<Path extends AuthenticationPath, Method extends "get" | "post"
       : never
     : never
 
-type RegisterInput = JsonPostRequest<typeof REGISTER_PATH>
-type LoginInput = JsonPostRequest<typeof LOGIN_PATH>
-type SocialLoginInput = JsonPostRequest<typeof SOCIAL_LOGIN_PATH>
-type VerifyEmailInput = JsonPostRequest<typeof VERIFY_EMAIL_PATH>
-type ForgotPasswordInput = JsonPostRequest<typeof FORGOT_PASSWORD_PATH>
-type ResetPasswordInput = JsonPostRequest<typeof RESET_PASSWORD_PATH>
-type ResendVerificationInput = JsonPostRequest<typeof RESEND_VERIFICATION_PATH>
-type RefreshInput = JsonPostRequest<typeof REFRESH_PATH>
-type LogoutInput = JsonPostRequest<typeof LOGOUT_PATH>
+type RegisterInput = JsonRequest<typeof REGISTER_PATH, "post">
+type LoginInput = JsonRequest<typeof LOGIN_PATH, "post">
+type SocialLoginInput = JsonRequest<typeof SOCIAL_LOGIN_PATH, "post">
+type VerifyEmailInput = JsonRequest<typeof VERIFY_EMAIL_PATH, "post">
+type ForgotPasswordInput = JsonRequest<typeof FORGOT_PASSWORD_PATH, "post">
+type ResetPasswordInput = JsonRequest<typeof RESET_PASSWORD_PATH, "post">
+type ResendVerificationInput = JsonRequest<typeof RESEND_VERIFICATION_PATH, "post">
+type RefreshInput = JsonRequest<typeof REFRESH_PATH, "post">
+type LogoutInput = JsonRequest<typeof LOGOUT_PATH, "post">
+type UpdateCurrentUserInput = Omit<JsonRequest<typeof USER_PATH, "put">, "role">
+type ChangePasswordInput = JsonRequest<typeof CHANGE_PASSWORD_PATH, "put">
+type LinkSocialAccountInput = JsonRequest<typeof SOCIAL_ACCOUNTS_PATH, "post">
 
 type RegisterResponse = JsonResponse<typeof REGISTER_PATH, "post", 201>
 type LoginResponse = JsonResponse<typeof LOGIN_PATH, "post", 200>
@@ -48,6 +58,11 @@ type ResetPasswordResponse = JsonResponse<typeof RESET_PASSWORD_PATH, "post", 20
 type ResendVerificationResponse = JsonResponse<typeof RESEND_VERIFICATION_PATH, "post", 200>
 type RefreshResponse = JsonResponse<typeof REFRESH_PATH, "post", 200>
 type CurrentUserResponse = JsonResponse<typeof CURRENT_USER_PATH, "get", 200>
+type UpdatedUserResponse = JsonResponse<typeof USER_PATH, "put", 200>
+type ChangePasswordResponse = JsonResponse<typeof CHANGE_PASSWORD_PATH, "put", 200>
+type ActiveSessionsResponse = JsonResponse<typeof ACTIVE_SESSIONS_PATH, "get", 200>
+type LoginHistoryResponse = JsonResponse<typeof LOGIN_HISTORY_PATH, "get", 200>
+type LinkSocialAccountResponse = JsonResponse<typeof SOCIAL_ACCOUNTS_PATH, "post", 200>
 
 type RequestOptions = {
   signal?: AbortSignal
@@ -158,6 +173,75 @@ class AuthenticationApiClient {
       signal: options.signal,
     })
   }
+
+  updateCurrentUser(userId: string, input: UpdateCurrentUserInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "put",
+      path: USER_PATH,
+      pathParams: { id: userId },
+      signal: options.signal,
+    })
+  }
+
+  changePassword(input: ChangePasswordInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "put",
+      path: CHANGE_PASSWORD_PATH,
+      signal: options.signal,
+    })
+  }
+
+  getActiveSessions(options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "get",
+      path: ACTIVE_SESSIONS_PATH,
+      signal: options.signal,
+    })
+  }
+
+  revokeActiveSession(sessionId: string, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "delete",
+      path: ACTIVE_SESSION_PATH,
+      pathParams: { id: sessionId },
+      signal: options.signal,
+    })
+  }
+
+  getLoginHistory(options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "get",
+      path: LOGIN_HISTORY_PATH,
+      signal: options.signal,
+    })
+  }
+
+  linkSocialAccount(input: LinkSocialAccountInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: SOCIAL_ACCOUNTS_PATH,
+      signal: options.signal,
+    })
+  }
+
+  unlinkSocialAccount(provider: LinkSocialAccountInput["provider"], options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "delete",
+      path: SOCIAL_ACCOUNT_PATH,
+      pathParams: { provider },
+      signal: options.signal,
+    })
+  }
 }
 
 function authorizationHeader(accessToken: string): HeadersInit {
@@ -172,6 +256,14 @@ export { AuthenticationApiClient }
 export type {
   AuthenticatedRequestOptions,
   CurrentUserResponse,
+  UpdatedUserResponse,
+  UpdateCurrentUserInput,
+  ChangePasswordInput,
+  ChangePasswordResponse,
+  ActiveSessionsResponse,
+  LoginHistoryResponse,
+  LinkSocialAccountInput,
+  LinkSocialAccountResponse,
   ForgotPasswordInput,
   ForgotPasswordResponse,
   LoginInput,

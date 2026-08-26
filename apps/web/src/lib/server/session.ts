@@ -10,6 +10,8 @@ type SessionCookieReader = Pick<SessionCookieStore, "get">
 type SessionCookieWriter = Pick<SessionCookieStore, "set">
 
 type AuthenticatedServerSession = {
+  /** Exclusivo do servidor; nunca deve ser serializado ao navegador. */
+  accessToken: string
   accessTokenExpiresAt: string | null
   refreshed: boolean
   state: "authenticated"
@@ -132,6 +134,7 @@ function createAuthenticatedSession(
   refreshed: boolean
 ): AuthenticatedServerSession {
   return {
+    accessToken,
     accessTokenExpiresAt: getApproximateAccessTokenExpiry(accessToken),
     refreshed,
     state: "authenticated",
@@ -179,8 +182,29 @@ function isCurrentUserResponse(value: unknown): value is CurrentUserResponse {
     typeof value.emailVerified === "boolean" &&
     Array.isArray(value.socialProviders) &&
     value.socialProviders.every(isNonEmptyString) &&
+    isProfile(value.profile) &&
     isNonEmptyString(value.createdAt) &&
     isNonEmptyString(value.updatedAt)
+  )
+}
+
+function isProfile(value: unknown): boolean {
+  if (!isRecord(value) || !isRecord(value.address)) {
+    return false
+  }
+
+  return (
+    isNullableString(value.avatarUrl) &&
+    isNullableString(value.phone) &&
+    isNullableString(value.birthDate) &&
+    isNullableString(value.bio) &&
+    isNullableString(value.locale) &&
+    isNullableString(value.timezone) &&
+    isNullableString(value.address.street) &&
+    isNullableString(value.address.city) &&
+    isNullableString(value.address.state) &&
+    isNullableString(value.address.zipCode) &&
+    isNullableString(value.address.country)
   )
 }
 
@@ -190,6 +214,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === "string"
 }
 
 export { resolveServerSession }

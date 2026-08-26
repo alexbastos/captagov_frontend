@@ -10,6 +10,7 @@ import { AppSidebar } from "./app-sidebar"
 import { AppUserProvider, getUserInitials } from "./app-user-context"
 import { HeaderApp } from "./header-app"
 import { AppProfileMenu } from "./app-profile-menu"
+import { UnsavedChangesGuard } from "./unsaved-changes-guard"
 import type { AppSidebarState } from "./types"
 
 const SIDEBAR_PREFERENCE_KEY = "captagov:app-sidebar-state"
@@ -50,7 +51,8 @@ function AppShell({ children, userName }: AppShellProps) {
 
   return (
     <AppUserProvider name={userName}>
-      <div className="flex h-dvh overflow-hidden bg-capta-surface-default">
+      <UnsavedChangesGuard>
+        <div className="flex h-dvh overflow-hidden bg-capta-surface-default">
         <AppSidebar onStateChange={setSidebarState} state={sidebarState} />
 
         {mobileNavigationOpen ? (
@@ -88,7 +90,8 @@ function AppShell({ children, userName }: AppShellProps) {
             {children}
           </AppStage>
         </div>
-      </div>
+        </div>
+      </UnsavedChangesGuard>
     </AppUserProvider>
   )
 }

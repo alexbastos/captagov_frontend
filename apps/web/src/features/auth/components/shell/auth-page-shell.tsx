@@ -7,6 +7,7 @@ import type { ReactNode } from "react"
 
 import { Card } from "@/components/ui/card"
 import { CaptaBrandLogo } from "@/components/ui/capta-brand-logo"
+import { appVersion } from "@/lib/app-version"
 import { cn } from "@/lib/utils"
 
 import { AuthBackLink } from "../navigation/auth-back-link"
@@ -190,6 +191,8 @@ function AuthPageShellStage({ children, className, footer }: AuthPageShellProps)
                       >
                         Política de Privacidade
                       </Link>
+                      <span aria-hidden="true">/</span>
+                      <span aria-label={`Versão ${appVersion}`}>v{appVersion}</span>
                     </nav>
                   </footer>
                 )}

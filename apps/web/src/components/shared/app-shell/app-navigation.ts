@@ -16,7 +16,7 @@ const homeNavigationItem: AppNavigationItem = {
 const primaryNavigationItems: AppNavigationItem[] = []
 
 const supportNavigationItems: AppNavigationItem[] = [
-  { context: "Configurações", href: "/app/configuracoes", icon: Settings, label: "Configurações" },
+  { context: "Configurações", href: "/app/settings", icon: Settings, label: "Configurações" },
   { context: "Ajuda", href: "/app/ajuda", icon: CircleHelp, label: "Ajuda" },
 ]
 
