@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { DashboardPage } from "@/features/dashboard"
 
-export const metadata: Metadata = {
-  title: "Dashboard",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard")
+  return { title: t("metadataTitle") }
 }
 
 export default function DashboardRoute() {

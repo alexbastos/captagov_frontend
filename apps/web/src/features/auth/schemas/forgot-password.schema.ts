@@ -1,10 +1,10 @@
 import { z } from "zod"
 
-const ForgotPasswordSchema = z.object({
-  email: z.string().trim().email("Informe um e-mail válido."),
-})
+function createForgotPasswordSchema(invalidEmail: string) {
+  return z.object({ email: z.string().trim().email(invalidEmail) })
+}
 
-type ForgotPasswordValues = z.infer<typeof ForgotPasswordSchema>
+type ForgotPasswordValues = z.infer<ReturnType<typeof createForgotPasswordSchema>>
 
-export { ForgotPasswordSchema }
+export { createForgotPasswordSchema }
 export type { ForgotPasswordValues }

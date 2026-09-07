@@ -2,14 +2,16 @@
 
 import { BellDot, ChevronDown, Search } from "lucide-react"
 import { forwardRef, type ComponentProps } from "react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
 import type { HeaderAppProps } from "./types"
 
 function HeaderApp({ actions, context, navigation, notifications, profile }: HeaderAppProps) {
+  const t = useTranslations("common.header")
   return (
-    <header className="flex h-[var(--layout-header-height)] items-center justify-between gap-3 bg-capta-surface-workspace px-4 sm:gap-6 sm:px-6">
+    <header className="flex h-[var(--layout-header-height)] items-center justify-between gap-3 bg-capta-surface-sidebar px-4 sm:gap-6 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         {navigation ? <span className="shrink-0 lg:hidden">{navigation}</span> : null}
         <p className="min-w-0 truncate font-mono text-[0.8125rem] font-medium tracking-[0.06em] text-capta-text-primary">
@@ -20,7 +22,7 @@ function HeaderApp({ actions, context, navigation, notifications, profile }: Hea
 
       <div className="flex shrink-0 items-center gap-3">
         <GlobalSearch />
-        <div id="app-header-actions" aria-label="Ações da página" className="hidden items-center gap-2 empty:hidden sm:flex">
+        <div id="app-header-actions" aria-label={t("pageActions")} className="hidden items-center gap-2 empty:hidden sm:flex">
           {actions}
         </div>
         {notifications ?? <HeaderNotificationIndicator />}
@@ -31,13 +33,14 @@ function HeaderApp({ actions, context, navigation, notifications, profile }: Hea
 }
 
 function GlobalSearch() {
+  const t = useTranslations("common.header")
   return (
     <label className="hidden h-9 w-60 items-center gap-2 rounded-full bg-capta-surface-subtle px-3.5 md:flex">
       <Search aria-hidden="true" className="size-3 shrink-0 text-capta-text-muted" />
-      <span className="sr-only">Busca global</span>
+      <span className="sr-only">{t("globalSearch")}</span>
       <input
         className="min-w-0 flex-1 bg-transparent text-ui text-capta-text-primary outline-none placeholder:text-capta-text-muted"
-        placeholder="Buscar..."
+        placeholder={t("searchPlaceholder")}
         type="search"
       />
     </label>
@@ -45,8 +48,9 @@ function GlobalSearch() {
 }
 
 function HeaderNotificationIndicator() {
+  const t = useTranslations("common.header")
   return (
-    <span aria-label="Notificações" className="flex size-9 items-center justify-center rounded-[var(--radius-token-md)] text-capta-text-secondary">
+    <span aria-label={t("notifications")} className="flex size-9 items-center justify-center rounded-[var(--radius-token-md)] text-capta-text-secondary">
       <BellDot aria-hidden="true" className="size-[1.125rem]" />
     </span>
   )
@@ -61,9 +65,10 @@ const HeaderProfileIndicator = forwardRef<HTMLButtonElement, HeaderProfileIndica
   { className, initials = "U", ...props },
   ref,
 ) {
+  const t = useTranslations("common.header")
   return (
     <button
-      aria-label="Abrir menu do perfil"
+      aria-label={t("openProfileMenu")}
       className={cn("motion-interactive flex h-[2.375rem] cursor-pointer items-center gap-1.5 rounded-full py-0.5 pr-1 pl-0.5 outline-none hover:bg-capta-surface-subtle focus-visible:bg-capta-surface-subtle", className)}
       ref={ref}
       type="button"

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 type RefreshState = "checking" | "unavailable"
 
@@ -11,6 +12,7 @@ type RefreshState = "checking" | "unavailable"
  * pois é ele que pode persistir os cookies HttpOnly rotacionados.
  */
 function ProtectedSessionRefreshGate() {
+  const t = useTranslations("common.session")
   const router = useRouter()
   const [state, setState] = useState<RefreshState>("checking")
 
@@ -58,20 +60,21 @@ function ProtectedSessionRefreshGate() {
 
   return (
     <main aria-busy="true" aria-live="polite" className="flex min-h-dvh items-center justify-center px-6 py-12">
-      <p className="text-ui text-capta-text-secondary">Verificando sua sessão…</p>
+      <p className="text-ui text-capta-text-secondary">{t("checking")}</p>
     </main>
   )
 }
 
 function ProtectedAreaUnavailable() {
+  const t = useTranslations("common.session")
   return (
     <main className="flex min-h-dvh items-center justify-center px-6 py-12">
       <section aria-labelledby="session-unavailable-title" className="w-full max-w-md space-y-3 text-center">
         <h1 id="session-unavailable-title" className="text-heading-4 text-capta-text-primary">
-          Não foi possível verificar sua sessão
+          {t("unavailableTitle")}
         </h1>
         <p className="text-ui text-capta-text-secondary">
-          Tente novamente em alguns instantes. Se o problema persistir, entre em contato com o suporte.
+          {t("unavailableDescription")}
         </p>
       </section>
     </main>

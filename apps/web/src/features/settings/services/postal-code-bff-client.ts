@@ -1,4 +1,12 @@
-import type { SettingsBffError, SettingsBffResult } from "../types/settings"
+import type { SettingsBffError, SettingsBffErrorCode, SettingsBffResult } from "../types/settings"
+
+const POSTAL_CODE_ERROR_CODES = new Set<SettingsBffErrorCode>([
+  "INVALID_POSTAL_CODE",
+  "POSTAL_CODE_NOT_FOUND",
+  "POSTAL_CODE_REQUEST_FAILED",
+  "POSTAL_CODE_UNAVAILABLE",
+  "SESSION_UNAVAILABLE",
+])
 
 type PostalCodeAddress = {
   city: string
@@ -9,7 +17,6 @@ type PostalCodeAddress = {
 
 const GENERIC_ERROR: SettingsBffError = {
   code: "POSTAL_CODE_REQUEST_FAILED",
-  message: "Não foi possível consultar o CEP agora. Preencha o endereço manualmente.",
   retryable: true,
 }
 
@@ -56,10 +63,14 @@ function getPublicError(payload: unknown): SettingsBffError {
     return GENERIC_ERROR
   }
 
-  const { code, message, retryable } = payload.error
-  return typeof code === "string" && typeof message === "string" && typeof retryable === "boolean"
-    ? { code, message, retryable }
+  const { code, retryable } = payload.error
+  return isPostalCodeErrorCode(code) && typeof retryable === "boolean"
+    ? { code, retryable }
     : GENERIC_ERROR
+}
+
+function isPostalCodeErrorCode(value: unknown): value is SettingsBffErrorCode {
+  return typeof value === "string" && POSTAL_CODE_ERROR_CODES.has(value as SettingsBffErrorCode)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

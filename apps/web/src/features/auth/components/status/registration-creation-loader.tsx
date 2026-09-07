@@ -1,6 +1,8 @@
 import { TriangleLoader } from "@/components/ui/triangle-loader"
+import { useTranslations } from "next-intl"
 
 function RegistrationCreationLoader() {
+  const t = useTranslations("auth.registration")
   return (
     <section
       aria-atomic="true"
@@ -13,7 +15,7 @@ function RegistrationCreationLoader() {
       <TriangleLoader size={48} />
       <div className="relative h-5 w-56 text-overline text-capta-text-secondary">
         <p className="absolute inset-0 flex items-center justify-center whitespace-nowrap" data-auth-registration-status-creating>
-          Criando sua conta
+          {t("creating")}
           <span aria-hidden="true" className="inline-flex" data-auth-registration-dots>
             <span data-auth-registration-dot>.</span>
             <span data-auth-registration-dot>.</span>
@@ -21,7 +23,7 @@ function RegistrationCreationLoader() {
           </span>
         </p>
         <p className="absolute inset-0 flex items-center justify-center whitespace-nowrap opacity-0" data-auth-registration-status-sent>
-          E-mail de confirmação enviado
+          {t("sent")}
         </p>
       </div>
     </section>

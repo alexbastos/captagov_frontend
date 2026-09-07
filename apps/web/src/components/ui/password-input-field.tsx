@@ -6,11 +6,14 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { InputField, type InputFieldProps } from "@/components/ui/input-field"
 
-type PasswordInputFieldProps = Omit<InputFieldProps, "trailingIcon" | "type">
+type PasswordInputFieldProps = Omit<InputFieldProps, "trailingIcon" | "type"> & {
+  hidePasswordLabel?: string
+  showPasswordLabel?: string
+}
 
-const PasswordInputField = React.forwardRef<HTMLInputElement, PasswordInputFieldProps>(({ disabled, ...props }, ref) => {
+const PasswordInputField = React.forwardRef<HTMLInputElement, PasswordInputFieldProps>(({ disabled, hidePasswordLabel = "Ocultar senha", showPasswordLabel = "Mostrar senha", ...props }, ref) => {
   const [isVisible, setIsVisible] = React.useState(false)
-  const visibilityLabel = isVisible ? "Ocultar senha" : "Mostrar senha"
+  const visibilityLabel = isVisible ? hidePasswordLabel : showPasswordLabel
 
   return (
     <InputField

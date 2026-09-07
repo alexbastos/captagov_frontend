@@ -1,17 +1,32 @@
 export { ApiHttpClient } from "./http-client"
-export type { ApiHttpClientOptions, HttpResult, TypedApiRequest } from "./http-client"
+export type { ApiHttpClientOptions, HttpResult, TypedApiRequest, TypedFormDataRequest } from "./http-client"
 export { AuthenticationApiClient } from "./authentication-api-client"
 export type {
   AuthenticatedRequestOptions,
   CurrentUserResponse,
+  DeleteCurrentUserAvatarResponse,
   UpdatedUserResponse,
   UpdateCurrentUserInput,
+  UploadCurrentUserAvatarResponse,
   ChangePasswordInput,
   ChangePasswordResponse,
   ActiveSessionsResponse,
   LoginHistoryResponse,
   LinkSocialAccountInput,
   LinkSocialAccountResponse,
+  MfaDisableInput,
+  MfaDisableResponse,
+  MfaEmailCodeInput,
+  MfaEmailCodeResponse,
+  MfaRegenerateRecoveryCodesInput,
+  MfaRegenerateRecoveryCodesResponse,
+  MfaSetupInput,
+  MfaSetupResponse,
+  MfaStatusResponse,
+  MfaVerifyInput,
+  MfaVerifyResponse,
+  MfaVerifySetupInput,
+  MfaVerifySetupResponse,
   ForgotPasswordInput,
   ForgotPasswordResponse,
   LoginInput,

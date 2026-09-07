@@ -3,14 +3,19 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
+import { useTranslations } from "next-intl"
+import { useMemo } from "react"
 import { toast } from "sonner"
 
-import { getAuthErrorNotification } from "../lib/get-auth-error-notification"
-import { RegisterSchema, type RegisterValues } from "../schemas/register.schema"
+import { createRegisterSchema, type RegisterValues } from "../schemas/register.schema"
 import { authBffClient } from "../services/auth-bff-client"
 import { useRegistrationConfirmationFlow } from "./animations/use-registration-confirmation-flow"
+import { useAuthErrorNotification } from "./use-auth-error-notification"
 
 function useRegister() {
+  const t = useTranslations("validation")
+  const schema = useMemo(() => createRegisterSchema({ fullName: t("fullName"), invalidEmail: t("invalidEmail"), lowercase: t("passwordLowercase"), min: t("passwordMin"), noSpaces: t("passwordNoSpaces"), number: t("passwordNumber"), special: t("passwordSpecial"), uppercase: t("passwordUppercase") }), [t])
+  const getAuthErrorNotification = useAuthErrorNotification()
   const { startRegistrationConfirmation } = useRegistrationConfirmationFlow()
   const form = useForm<RegisterValues>({
     defaultValues: {
@@ -18,7 +23,7 @@ function useRegister() {
       name: "",
       password: "",
     },
-    resolver: zodResolver(RegisterSchema),
+    resolver: zodResolver(schema),
   })
   const mutation = useMutation({ mutationFn: authBffClient.register })
 

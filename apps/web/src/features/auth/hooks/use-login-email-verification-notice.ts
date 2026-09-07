@@ -1,10 +1,12 @@
 "use client"
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 function useLoginEmailVerificationNotice() {
+  const t = useTranslations("auth.notifications.emailConfirmed")
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -16,8 +18,8 @@ function useLoginEmailVerificationNotice() {
     }
 
     hasNotifiedRef.current = true
-    toast.success("E-mail confirmado", {
-      description: "Sua conta foi ativada. Agora você já pode entrar.",
+    toast.success(t("title"), {
+      description: t("description"),
     })
 
     const nextSearchParams = new URLSearchParams(searchParams.toString())
@@ -25,7 +27,7 @@ function useLoginEmailVerificationNotice() {
     const query = nextSearchParams.toString()
 
     router.replace(query ? `${pathname}?${query}` : pathname)
-  }, [pathname, router, searchParams])
+  }, [pathname, router, searchParams, t])
 }
 
 export { useLoginEmailVerificationNotice }

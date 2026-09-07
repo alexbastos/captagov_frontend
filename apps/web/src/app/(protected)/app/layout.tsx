@@ -1,8 +1,13 @@
 import { ProtectedAreaUnavailable, ProtectedSessionRefreshGate } from "@/components/shared/protected-session-refresh-gate"
 import { AppShell } from "@/components/shared/app-shell"
 import { resolveServerSession } from "@/lib/server/session"
+import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+
+export const metadata: Metadata = {
+  robots: { follow: false, index: false },
+}
 
 /**
  * Limite de segurança das rotas autenticadas. O proxy evita uma navegação

@@ -4,6 +4,7 @@ import * as React from "react"
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { Select } from "radix-ui"
 import { DayPicker, getDefaultClassNames } from "react-day-picker"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -14,6 +15,7 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
+  const t = useTranslations("common.accessibility")
   const defaultClassNames = getDefaultClassNames()
 
   return (
@@ -72,7 +74,7 @@ function Calendar({
             )}
           >
             <button
-              aria-label="Mês anterior"
+              aria-label={t("previousMonth")}
               className="pointer-events-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-capta-text-secondary hover:bg-capta-surface-subtle hover:text-capta-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-capta-brand-primary disabled:pointer-events-none disabled:opacity-40"
               disabled={!previousMonth}
               onClick={onPreviousClick}
@@ -81,7 +83,7 @@ function Calendar({
               <ChevronLeft aria-hidden="true" className="size-4" />
             </button>
             <button
-              aria-label="Próximo mês"
+              aria-label={t("nextMonth")}
               className="pointer-events-auto inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-capta-text-secondary hover:bg-capta-surface-subtle hover:text-capta-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-capta-brand-primary disabled:pointer-events-none disabled:opacity-40"
               disabled={!nextMonth}
               onClick={onNextClick}

@@ -1,11 +1,14 @@
 "use client"
 
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
-import { useAppUser } from "@/components/shared/app-shell"
+import { useAppTheme, useAppUser } from "@/components/shared/app-shell"
 
 function HomeGreeting() {
+  const t = useTranslations("home")
   const { initials, name } = useAppUser()
+  const { resolvedTheme } = useAppTheme()
   const firstName = name.trim().split(/\s+/).filter(Boolean)[0] ?? ""
 
   return (
@@ -14,10 +17,10 @@ function HomeGreeting() {
         {initials}
       </span>
       <div className="min-w-0">
-        <p data-home-greeting-salutation className="text-[13px] font-medium text-capta-text-secondary sm:text-[13.5px]">Olá{firstName ? ` ${firstName}` : ""},</p>
+        <p data-home-greeting-salutation className="text-[13px] font-medium text-capta-text-secondary sm:text-[13.5px]">{t("greeting", { firstName })}</p>
         <h1 data-home-greeting-title className="flex flex-wrap items-center gap-x-1 text-[22px] leading-tight font-medium tracking-[-0.03em] text-capta-text-primary sm:text-[27px]">
-          <span>Bem-vindo ao</span>
-          <Image alt="CAPTAGOV" className="-ml-1 h-auto w-[92px] sm:w-[112px]" height={28} src="/brand/logo_black.svg" width={112} />
+          <span>{t("welcome")}</span>
+          <Image alt="CAPTAGOV" className="-ml-1 h-auto w-[92px] sm:w-[112px]" height={28} src={resolvedTheme === "dark" ? "/brand/logo_white.svg" : "/brand/logo_black.svg"} width={112} />
         </h1>
       </div>
     </header>

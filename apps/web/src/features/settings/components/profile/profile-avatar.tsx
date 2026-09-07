@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 type ProfileAvatarProps = {
   name: string
@@ -8,6 +9,7 @@ type ProfileAvatarProps = {
 }
 
 function ProfileAvatar({ name, src }: ProfileAvatarProps) {
+  const t = useTranslations("settings.profile")
   const [imageFailed, setImageFailed] = useState(false)
 
   useEffect(() => {
@@ -23,10 +25,10 @@ function ProfileAvatar({ name, src }: ProfileAvatarProps) {
     .toUpperCase()
 
   if (src && !imageFailed) {
-    return <img alt="Foto de perfil" className="size-16 rounded-full border border-capta-border-default object-cover" onError={() => setImageFailed(true)} src={src} />
+    return <img alt={t("avatarAlt")} className="size-16 rounded-full border border-capta-border-default object-cover" onError={() => setImageFailed(true)} src={src} />
   }
 
-  return <span aria-label="Foto de perfil indisponível" className="flex size-16 items-center justify-center rounded-full bg-capta-brand-primary text-ui-semibold text-capta-text-inverse">{initials || "U"}</span>
+  return <span aria-label={t("avatarUnavailable")} className="flex size-16 items-center justify-center rounded-full bg-[var(--profile-avatar-surface)] text-ui-semibold text-capta-text-inverse">{initials || "U"}</span>
 }
 
 export { ProfileAvatar }

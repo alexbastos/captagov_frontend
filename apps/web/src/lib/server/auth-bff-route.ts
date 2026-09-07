@@ -4,6 +4,8 @@ import { getApiErrorLogContext, normalizeAuthenticationError, type NormalizedAut
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { appLocales, isValidTimeZone } from "@/i18n/config"
+
 import { createAuthenticationApiClient } from "./authentication-api"
 import { isBrazilianPhone, isBrazilianPostalCode } from "../brazilian-input"
 import { getServerEnvironment } from "./environment"
@@ -11,6 +13,7 @@ import { assertTrustedRequestOrigin, InvalidRequestOriginError } from "./request
 
 type AuthenticationAction =
   | "change-password"
+  | "delete-avatar"
   | "forgot-password"
   | "link-social-account"
   | "login"
@@ -24,6 +27,7 @@ type AuthenticationAction =
   | "social-login"
   | "unlink-social-account"
   | "update-profile"
+  | "upload-avatar"
   | "verify-email"
 
 type SessionTokens = {
@@ -45,7 +49,6 @@ type PublicAuthenticationError = {
     | "SERVICE_UNAVAILABLE"
     | "SOCIAL_AUTH_FAILED"
     | "VALIDATION_ERROR"
-  message: string
   retryable: boolean
   status: 400 | 401 | 403 | 409 | 429 | 503
 }
@@ -129,10 +132,10 @@ const UpdateProfileRequestSchema = z
     bio: NullableProfileFieldSchema.optional(),
     birthDate: z.string().date().nullable().optional(),
     email: z.string().trim().email().optional(),
-    locale: z.string().trim().max(10).nullable().optional(),
+    locale: z.enum(appLocales).nullable().optional(),
     name: z.string().trim().min(2).max(100).optional(),
     phone: z.string().trim().refine(isBrazilianPhone).nullable().optional(),
-    timezone: z.string().trim().max(50).nullable().optional(),
+    timezone: z.string().trim().max(50).refine(isValidTimeZone).nullable().optional(),
   })
   .strict()
   .refine((value) => Object.keys(value).length > 0)
@@ -175,7 +178,6 @@ function createUnauthenticatedResponse(): NextResponse {
     {
       error: {
         code: "SESSION_UNAVAILABLE",
-        message: "Sua sessão não está disponível. Entre novamente para continuar.",
         retryable: false,
       },
     },
@@ -191,7 +193,7 @@ function createUpstreamErrorResponse(action: AuthenticationAction, upstreamRespo
 function createUnexpectedRouteErrorResponse(action: AuthenticationAction, error: unknown): NextResponse {
   if (error instanceof InvalidRequestOriginError) {
     return NextResponse.json(
-      { error: { code: "REQUEST_NOT_ALLOWED", message: "Não foi possível concluir esta solicitação." } },
+      { error: { code: "REQUEST_NOT_ALLOWED", retryable: false } },
       { headers: NO_STORE_HEADERS, status: 403 }
     )
   }
@@ -209,7 +211,6 @@ function createAuthenticationErrorResponse(action: AuthenticationAction | undefi
     {
       error: {
         code: publicError.code,
-        message: publicError.message,
         retryable: publicError.retryable,
       },
     },
@@ -224,7 +225,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "RATE_LIMITED") {
     return {
       code: "RATE_LIMITED",
-      message: normalized.message,
       retryable: normalized.retryable,
       status: 429,
     }
@@ -233,7 +233,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "SERVICE_UNAVAILABLE") {
     return {
       code: "SERVICE_UNAVAILABLE",
-      message: normalized.message,
       retryable: normalized.retryable,
       status: 503,
     }
@@ -242,7 +241,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "NETWORK_ERROR") {
     return {
       code: "NETWORK_ERROR",
-      message: normalized.message,
       retryable: normalized.retryable,
       status: 503,
     }
@@ -251,7 +249,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "UNAUTHORIZED" && action === "login") {
     return {
       code: "INVALID_CREDENTIALS",
-      message: "E-mail ou senha incorretos.",
       retryable: false,
       status: 401,
     }
@@ -260,7 +257,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "FORBIDDEN" && action === "login") {
     return {
       code: "ACCOUNT_REQUIRES_ACTION",
-      message: "Há uma pendência para concluir seu acesso. Verifique seu e-mail ou entre em contato com o suporte.",
       retryable: false,
       status: 403,
     }
@@ -269,7 +265,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "CONFLICT" && action === "register") {
     return {
       code: "REGISTRATION_CONFLICT",
-      message: "Já existe uma conta com este e-mail. Entre para continuar ou use outro e-mail.",
       retryable: false,
       status: 409,
     }
@@ -278,7 +273,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "BAD_REQUEST" && action === "reset-password") {
     return {
       code: "INVALID_RECOVERY_LINK",
-      message: "Este link de recuperação é inválido ou expirou. Solicite um novo link.",
       retryable: false,
       status: 400,
     }
@@ -287,7 +281,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "BAD_REQUEST" && action === "verify-email") {
     return {
       code: "INVALID_VERIFICATION_LINK",
-      message: "Este link de confirmação é inválido ou expirou. Solicite um novo link.",
       retryable: false,
       status: 400,
     }
@@ -296,7 +289,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "BAD_REQUEST" && action === "social-login") {
     return {
       code: "SOCIAL_AUTH_FAILED",
-      message: "Não foi possível concluir o login com Google. Tente novamente.",
       retryable: false,
       status: 400,
     }
@@ -305,7 +297,6 @@ function getPublicAuthenticationError(
   if (normalized.code === "BAD_REQUEST") {
     return {
       code: "VALIDATION_ERROR",
-      message: "Revise os dados informados e tente novamente.",
       retryable: false,
       status: 400,
     }
@@ -313,7 +304,6 @@ function getPublicAuthenticationError(
 
   return {
     code: "AUTHENTICATION_REQUEST_FAILED",
-    message: "Não foi possível concluir esta solicitação. Tente novamente.",
     retryable: false,
     status: 503,
   }

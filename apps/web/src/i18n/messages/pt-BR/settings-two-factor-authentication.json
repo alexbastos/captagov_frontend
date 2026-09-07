@@ -1,0 +1,18 @@
+{
+  "twoFactorAuthentication": {
+    "title": "Autenticação em duas etapas",
+    "description": "Recomendamos exigir um código de verificação além da sua senha para proteger a sua conta.",
+    "authenticatorApp": "App autenticador (TOTP)",
+    "configureAction": "Configurar",
+    "back": "Voltar",
+    "disabled": "desativado",
+    "enabled": "ativado",
+    "toggleAuthenticatorApp": "Ativar ou desativar o app autenticador",
+    "setupTitle": "Ative a autenticação em duas etapas",
+    "setupDescription": "Escaneie o QR code em um app autenticador, como Google Authenticator ou Authy.",
+    "setupPending": "O QR code será disponibilizado quando a configuração segura estiver disponível.",
+    "qrCodePlaceholderLabel": "QR code de configuração indisponível",
+    "verificationCode": "Código de verificação",
+    "verificationCodePending": "Informe o código de seis dígitos após escanear o QR code."
+  }
+}

@@ -10,3 +10,7 @@ Atividade serão implementados em etapas independentes.
 
 As chamadas do navegador para a conta devem passar exclusivamente pelas rotas
 em `/api/settings`; a feature nunca chama a Authentication API diretamente.
+
+Falhas dessas rotas atravessam o navegador apenas como `code` e `retryable`.
+O hook `useSettingsErrorMessage` é o único seam entre esses códigos e a copy
+localizada exibida pela feature.

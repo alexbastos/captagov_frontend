@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { ArrowRight } from "lucide-react"
 import type { ReactNode } from "react"
 
@@ -46,6 +47,7 @@ function AuthPageShellContent({ children, className, footer }: AuthPageShellProp
 }
 
 function AuthPageShellStage({ children, className, footer }: AuthPageShellProps) {
+  const t = useTranslations("auth.shell")
   const { phase, registrationConfirmationState, targetVisualMode, visualMode } = useAuthTransition()
   const hasEntered = useAuthPageEntered()
   const isCenteredStage = visualMode !== "split"
@@ -137,22 +139,22 @@ function AuthPageShellStage({ children, className, footer }: AuthPageShellProps)
                 <div className="absolute top-[calc(50%-var(--space-8))] right-8 z-10 max-w-xs -translate-y-1/2">
                   <Card aria-hidden="true" className="auth-showcase-fade border-transparent border-r-0 p-6" data-auth-showcase variant="base">
                     <div className="space-y-2">
-                      <p className="text-overline text-capta-text-secondary">Nova oportunidade</p>
-                      <p className="text-ui text-capta-text-secondary">Uma nova oportunidade combina com seu município.</p>
+                      <p className="text-overline text-capta-text-secondary">{t("opportunity")}</p>
+                      <p className="text-ui text-capta-text-secondary">{t("opportunityDescription")}</p>
                     </div>
 
                     <EditalScannerAnimation />
 
                     <p className="flex items-center gap-2 text-ui-semibold text-capta-brand-primary">
-                      Ver oportunidade
+                      {t("viewOpportunity")}
                       <ArrowRight aria-hidden="true" className="size-4" />
                     </p>
                   </Card>
                 </div>
                 <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-20 w-32 bg-gradient-to-r from-transparent to-capta-surface-card" />
                 <p className="absolute bottom-8 left-8 z-10 text-heading-3 text-capta-text-primary" data-auth-tagline>
-                  <span className="block">Oportunidades certas.</span>
-                  <span className="block">Decisões mais simples.</span>
+                  <span className="block">{t("headlineLine1")}</span>
+                  <span className="block">{t("headlineLine2")}</span>
                 </p>
               </aside>
 
@@ -177,22 +179,22 @@ function AuthPageShellStage({ children, className, footer }: AuthPageShellProps)
                 {!isCenteredStage && (
                   <footer className="px-4 py-4 text-center sm:px-6 sm:py-6">
                     {footer}
-                    <nav aria-label="Links legais" className="flex items-center justify-center gap-2 text-caption text-capta-text-secondary" data-login-step>
+                    <nav aria-label={t("legalLinks")} className="flex items-center justify-center gap-2 text-caption text-capta-text-secondary" data-login-step>
                       <Link
                         className="motion-interactive rounded-sm outline-none hover:text-capta-text-primary focus-visible:ring-2 focus-visible:ring-capta-border-focus focus-visible:ring-offset-2"
                         href="/termos-de-uso"
                       >
-                        Termos de Uso
+                        {t("terms")}
                       </Link>
                       <span aria-hidden="true">/</span>
                       <Link
                         className="motion-interactive rounded-sm outline-none hover:text-capta-text-primary focus-visible:ring-2 focus-visible:ring-capta-border-focus focus-visible:ring-offset-2"
                         href="/politica-de-privacidade"
                       >
-                        Política de Privacidade
+                        {t("privacy")}
                       </Link>
                       <span aria-hidden="true">/</span>
-                      <span aria-label={`Versão ${appVersion}`}>v{appVersion}</span>
+                      <span aria-label={t("version", { version: appVersion })}>v{appVersion}</span>
                     </nav>
                   </footer>
                 )}

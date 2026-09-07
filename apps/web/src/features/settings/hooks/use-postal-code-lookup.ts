@@ -1,11 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useFormState, useWatch, type UseFormReturn } from "react-hook-form"
 
 import { onlyDigits } from "@/lib/brazilian-input"
 import type { ProfileValues } from "../schemas/profile.schema"
 import { lookupPostalCode } from "../services/postal-code-bff-client"
+import { useSettingsErrorMessage } from "./use-settings-error-message"
 
 type PostalCodeLookupState = {
   message?: string
@@ -16,6 +18,8 @@ const INITIAL_STATE: PostalCodeLookupState = { status: "idle" }
 const POSTAL_CODE_LOOKUP_DELAY_MS = 250
 
 function usePostalCodeLookup(form: UseFormReturn<ProfileValues>): PostalCodeLookupState & { onPostalCodeChange: (value: string) => void } {
+  const t = useTranslations("settings.postalCode")
+  const getSettingsErrorMessage = useSettingsErrorMessage()
   const postalCodeValue = useWatch({ control: form.control, name: "zipCode" })
   const { dirtyFields } = useFormState({ control: form.control })
   const [state, setState] = useState<PostalCodeLookupState>(INITIAL_STATE)
@@ -59,7 +63,7 @@ function usePostalCodeLookup(form: UseFormReturn<ProfileValues>): PostalCodeLook
 
     const controller = new AbortController()
     const lookupTimeout = window.setTimeout(async () => {
-      setState({ message: "Buscando endereço…", status: "loading" })
+      setState({ message: t("searching"), status: "loading" })
 
       try {
         const result = await lookupPostalCode(postalCode, controller.signal)
@@ -69,13 +73,15 @@ function usePostalCodeLookup(form: UseFormReturn<ProfileValues>): PostalCodeLook
         }
 
         if (!result.ok) {
+          const errorMessage = getSettingsErrorMessage(result.error.code)
+
           if (result.error.code === "INVALID_POSTAL_CODE" || result.error.code === "POSTAL_CODE_NOT_FOUND") {
-            form.setError("zipCode", { message: result.error.message, type: "validate" })
-            setState({ message: result.error.message, status: "invalid" })
+            form.setError("zipCode", { message: errorMessage, type: "validate" })
+            setState({ message: errorMessage, status: "invalid" })
             return
           }
 
-          setState({ message: result.error.message, status: "unavailable" })
+          setState({ message: errorMessage, status: "unavailable" })
           return
         }
 
@@ -91,10 +97,7 @@ function usePostalCodeLookup(form: UseFormReturn<ProfileValues>): PostalCodeLook
           return
         }
 
-        setState({
-          message: "Não foi possível consultar o CEP agora. Preencha o endereço manualmente.",
-          status: "unavailable",
-        })
+        setState({ message: getSettingsErrorMessage("POSTAL_CODE_REQUEST_FAILED"), status: "unavailable" })
       }
     }, POSTAL_CODE_LOOKUP_DELAY_MS)
 
@@ -102,7 +105,7 @@ function usePostalCodeLookup(form: UseFormReturn<ProfileValues>): PostalCodeLook
       controller.abort()
       window.clearTimeout(lookupTimeout)
     }
-  }, [clearAddress, dirtyFields.zipCode, form, postalCodeValue])
+  }, [clearAddress, dirtyFields.zipCode, form, getSettingsErrorMessage, postalCodeValue, t])
 
   return { ...state, onPostalCodeChange }
 }

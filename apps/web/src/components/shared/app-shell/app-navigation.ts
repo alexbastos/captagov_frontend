@@ -3,10 +3,9 @@ import { CircleHelp, House, Settings } from "lucide-react"
 import type { AppNavigationItem } from "./types"
 
 const homeNavigationItem: AppNavigationItem = {
-  context: "Início",
   href: "/app",
   icon: House,
-  label: "Início",
+  translationKey: "home",
 }
 
 /**
@@ -16,20 +15,20 @@ const homeNavigationItem: AppNavigationItem = {
 const primaryNavigationItems: AppNavigationItem[] = []
 
 const supportNavigationItems: AppNavigationItem[] = [
-  { context: "Configurações", href: "/app/settings", icon: Settings, label: "Configurações" },
-  { context: "Ajuda", href: "/app/ajuda", icon: CircleHelp, label: "Ajuda" },
+  { href: "/app/settings", icon: Settings, translationKey: "settings" },
+  { href: "/app/ajuda", icon: CircleHelp, translationKey: "help" },
 ]
 
-function getAppRouteContext(pathname: string): string {
+function getAppRouteContext(pathname: string): "application" | AppNavigationItem["translationKey"] {
   if (pathname === homeNavigationItem.href) {
-    return homeNavigationItem.context
+    return homeNavigationItem.translationKey
   }
 
   const navigationItem = [...primaryNavigationItems, ...supportNavigationItems].find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   )
 
-  return navigationItem?.context ?? "Aplicação"
+  return navigationItem?.translationKey ?? "application"
 }
 
 export { getAppRouteContext, homeNavigationItem, primaryNavigationItems, supportNavigationItems }

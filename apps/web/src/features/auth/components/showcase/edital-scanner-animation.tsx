@@ -1,34 +1,36 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { useAuthPageEntered } from "../shell/auth-page-motion"
 import { useEditalScannerAnimation } from "../../hooks/animations/use-edital-scanner-animation"
 
 const VARIATIONS = [
   {
-    adherence: "Alta aderência",
+    adherenceKey: "highMatch" as const,
     dotClass: "bg-capta-feedback-success",
-    status: "Inscrições abertas",
+    statusKey: "openApplications" as const,
   },
   {
-    adherence: "Média aderência",
+    adherenceKey: "mediumMatch" as const,
     dotClass: "bg-capta-feedback-warning",
-    status: "Análise de elegibilidade",
+    statusKey: "eligibilityReview" as const,
   },
   {
-    adherence: "Alta aderência",
+    adherenceKey: "highMatch" as const,
     dotClass: "bg-capta-feedback-success",
-    status: "Recursos disponíveis",
+    statusKey: "fundingAvailable" as const,
   },
   {
-    adherence: "Média aderência",
+    adherenceKey: "mediumMatch" as const,
     dotClass: "bg-capta-feedback-warning",
-    status: "Inscrições em breve",
+    statusKey: "applicationsSoon" as const,
   },
 ]
 
 export function EditalScannerAnimation() {
+  const t = useTranslations("auth.showcase")
   const hasEntered = useAuthPageEntered()
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -174,13 +176,13 @@ export function EditalScannerAnimation() {
             aria-hidden="true"
             className={`size-2 shrink-0 rounded-full ${currentVariation.dotClass}`}
           />
-          {currentVariation.adherence}
+          {t(currentVariation.adherenceKey)}
         </p>
         <p
           ref={statusDescRef}
           className="text-ui text-capta-text-secondary whitespace-nowrap opacity-0"
         >
-          {currentVariation.status}
+          {t(currentVariation.statusKey)}
         </p>
       </div>
     </div>

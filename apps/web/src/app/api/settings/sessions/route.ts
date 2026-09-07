@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return applySettingsSessionCookies(context, createUpstreamErrorResponse("session", upstreamResponse))
     }
 
-    return createSettingsResponse(context, { sessions: upstreamResponse.data })
+    return createSettingsResponse(context, upstreamResponse.data)
   } catch (error) {
     return createUnexpectedRouteErrorResponse("session", error)
   }

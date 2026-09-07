@@ -3,25 +3,31 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { getAuthErrorNotification } from "../lib/get-auth-error-notification"
-import { ResetPasswordSchema, type ResetPasswordValues } from "../schemas/reset-password.schema"
+import { createResetPasswordSchema, type ResetPasswordValues } from "../schemas/reset-password.schema"
 import { authBffClient } from "../services/auth-bff-client"
+import { useAuthErrorNotification } from "./use-auth-error-notification"
 
 function useResetPassword(token: string | undefined) {
+  const t = useTranslations("validation")
+  const tNotifications = useTranslations("auth.notifications")
+  const schema = useMemo(() => createResetPasswordSchema({ lowercase: t("passwordLowercase"), min: t("passwordMin"), mismatch: t("passwordMismatch"), noSpaces: t("passwordNoSpaces"), number: t("passwordNumber"), special: t("passwordSpecial"), uppercase: t("passwordUppercase") }), [t])
+  const getAuthErrorNotification = useAuthErrorNotification()
   const router = useRouter()
   const form = useForm<ResetPasswordValues>({
     defaultValues: { confirmPassword: "", password: "" },
-    resolver: zodResolver(ResetPasswordSchema),
+    resolver: zodResolver(schema),
   })
   const mutation = useMutation({ mutationFn: authBffClient.resetPassword })
 
   const onSubmit = form.handleSubmit(async ({ password }) => {
     if (!token?.trim()) {
-      toast.error("Não foi possível redefinir sua senha", {
-        description: "Este link de recuperação é inválido ou expirou. Solicite um novo link.",
+      toast.error(tNotifications("invalidRecoveryLink.title"), {
+        description: tNotifications("invalidRecoveryLink.description"),
       })
       return
     }
@@ -35,7 +41,7 @@ function useResetPassword(token: string | undefined) {
     }
 
     form.reset()
-    toast.success("Senha redefinida", { description: "Agora você já pode entrar com sua nova senha." })
+    toast.success(tNotifications("passwordChanged.title"), { description: tNotifications("passwordChanged.description") })
     router.replace("/login")
     router.refresh()
   })

@@ -1,6 +1,7 @@
 "use client"
 
 import { TriangleLoader } from "@/components/ui/triangle-loader"
+import { useTranslations } from "next-intl"
 
 import type { LoginHandoffState } from "./login-handoff-provider"
 import { useLoginHandoffAnimation } from "./use-login-handoff-animation"
@@ -11,6 +12,7 @@ type LoginHandoffOverlayProps = {
 }
 
 function LoginHandoffOverlay({ onExitComplete, state }: LoginHandoffOverlayProps) {
+  const t = useTranslations("auth.handoff")
   const overlayRef = useLoginHandoffAnimation({ onExitComplete, state })
 
   if (state === "idle") {
@@ -29,13 +31,13 @@ function LoginHandoffOverlay({ onExitComplete, state }: LoginHandoffOverlayProps
       <TriangleLoader size={52} />
       <div className="relative h-5 w-72 text-overline text-capta-text-secondary">
         <p className="absolute inset-0 flex items-center justify-center whitespace-nowrap" data-login-handoff-status="authenticating">
-          Autenticando...
+          {t("authenticating")}
         </p>
         <p className="absolute inset-0 flex items-center justify-center whitespace-nowrap opacity-0" data-login-handoff-status="validating">
-          Validando suas credenciais...
+          {t("validating")}
         </p>
         <p className="absolute inset-0 flex items-center justify-center whitespace-nowrap opacity-0" data-login-handoff-status="preparing">
-          Preparando sua experiência...
+          {t("preparing")}
         </p>
       </div>
     </section>

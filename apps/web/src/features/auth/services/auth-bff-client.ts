@@ -56,7 +56,6 @@ const BFF_ERROR_CODES = new Set<AuthBffErrorCode>([
 
 const GENERIC_ERROR: AuthBffError = {
   code: "AUTHENTICATION_REQUEST_FAILED",
-  message: "Não foi possível concluir esta solicitação. Tente novamente.",
   retryable: false,
 }
 
@@ -96,7 +95,6 @@ async function request<Data>(path: string, body?: object): Promise<AuthBffResult
     return {
       error: {
         code: "NETWORK_ERROR",
-        message: "Não foi possível conectar ao serviço. Tente novamente em instantes.",
         retryable: true,
       },
       ok: false,
@@ -124,13 +122,13 @@ function getPublicError(payload: unknown): AuthBffError {
     return GENERIC_ERROR
   }
 
-  const { code, message, retryable } = payload.error
+  const { code, retryable } = payload.error
 
-  if (!isBffErrorCode(code) || typeof message !== "string" || typeof retryable !== "boolean") {
+  if (!isBffErrorCode(code) || typeof retryable !== "boolean") {
     return GENERIC_ERROR
   }
 
-  return { code, message, retryable }
+  return { code, retryable }
 }
 
 function isBffErrorCode(value: unknown): value is AuthBffErrorCode {

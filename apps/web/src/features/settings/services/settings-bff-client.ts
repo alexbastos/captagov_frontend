@@ -1,24 +1,44 @@
 import type { ProfileValues } from "../schemas/profile.schema"
-import type { SettingsBffError, SettingsBffResult, SettingsUser } from "../types/settings"
+import type { ActiveSession, ChangePasswordInput, SettingsBffError, SettingsBffErrorCode, SettingsBffResult, SettingsUser } from "../types/settings"
+
+const SETTINGS_ERROR_CODES = new Set<SettingsBffErrorCode>([
+  "AUTHENTICATION_REQUEST_FAILED",
+  "NETWORK_ERROR",
+  "RATE_LIMITED",
+  "REQUEST_NOT_ALLOWED",
+  "SERVICE_UNAVAILABLE",
+  "SESSION_UNAVAILABLE",
+  "SETTINGS_REQUEST_FAILED",
+  "VALIDATION_ERROR",
+])
 
 const GENERIC_ERROR: SettingsBffError = {
   code: "SETTINGS_REQUEST_FAILED",
-  message: "Não foi possível concluir esta solicitação. Tente novamente.",
   retryable: false,
 }
 
 const settingsBffClient = {
+  changePassword: (input: ChangePasswordInput) => request<undefined>("/api/settings/password", "PUT", input),
+  deleteAvatar: () => request<{ avatarUrl: null }>("/api/settings/avatar", "DELETE"),
+  getActiveSessions: () => request<{ sessions: ActiveSession[] }>("/api/settings/sessions", "POST"),
   getProfile: () => request<{ user: SettingsUser }>("/api/settings/profile", "POST"),
+  revokeActiveSession: (sessionId: string) => request<undefined>(`/api/settings/sessions/${encodeURIComponent(sessionId)}`, "DELETE"),
   updateProfile: (input: ProfileValues) => request<{ user: SettingsUser }>("/api/settings/profile", "PUT", toUpdateRequest(input)),
+  uploadAvatar: (avatar: File) => {
+    const body = new FormData()
+    body.append("avatar", avatar)
+    return request<{ avatarUrl: string }>("/api/settings/avatar", "POST", body)
+  },
 }
 
-async function request<Data>(path: string, method: "POST" | "PUT", body?: object): Promise<SettingsBffResult<Data>> {
+async function request<Data>(path: string, method: "DELETE" | "POST" | "PUT", body?: FormData | object): Promise<SettingsBffResult<Data>> {
   try {
+    const isFormData = body instanceof FormData
     const response = await fetch(path, {
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
       cache: "no-store",
       credentials: "same-origin",
-      headers: body === undefined ? undefined : { "content-type": "application/json" },
+      headers: body === undefined || isFormData ? undefined : { "content-type": "application/json" },
       method,
     })
     const payload = await readJson(response)
@@ -30,7 +50,7 @@ async function request<Data>(path: string, method: "POST" | "PUT", body?: object
     return { data: payload as Data, ok: true, status: response.status }
   } catch {
     return {
-      error: { code: "NETWORK_ERROR", message: "Não foi possível conectar ao serviço. Tente novamente em instantes.", retryable: true },
+      error: { code: "NETWORK_ERROR", retryable: true },
       ok: false,
       status: 503,
     }
@@ -46,7 +66,6 @@ function toUpdateRequest(values: ProfileValues) {
       street: toNullable(values.street),
       zipCode: toNullable(values.zipCode),
     },
-    avatarUrl: toNullable(values.avatarUrl),
     bio: toNullable(values.bio),
     birthDate: toNullable(values.birthDate),
     locale: toNullable(values.locale),
@@ -77,10 +96,14 @@ function getPublicError(payload: unknown): SettingsBffError {
     return GENERIC_ERROR
   }
 
-  const { code, message, retryable } = payload.error
-  return typeof code === "string" && typeof message === "string" && typeof retryable === "boolean"
-    ? { code, message, retryable }
+  const { code, retryable } = payload.error
+  return isSettingsErrorCode(code) && typeof retryable === "boolean"
+    ? { code, retryable }
     : GENERIC_ERROR
+}
+
+function isSettingsErrorCode(value: unknown): value is SettingsBffErrorCode {
+  return typeof value === "string" && SETTINGS_ERROR_CODES.has(value as SettingsBffErrorCode)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
