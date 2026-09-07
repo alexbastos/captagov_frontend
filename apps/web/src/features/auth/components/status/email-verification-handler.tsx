@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, type RefObject } from "react"
+import { useTranslations } from "next-intl"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { TriangleLoader } from "@/components/ui/triangle-loader"
@@ -14,26 +15,8 @@ type EmailVerificationHandlerProps = {
   token?: string
 }
 
-type VerificationContent = {
-  description: string
-  title: string
-}
-
-function getVerificationContent(state: EmailVerificationState): VerificationContent {
-  if (state === "confirmed" || state === "exiting") {
-    return {
-      description: "Redirecionando para o login…",
-      title: "Cadastro concluído",
-    }
-  }
-
-  return {
-    description: "Aguarde enquanto concluímos seu cadastro.",
-    title: "Confirmando seu e-mail",
-  }
-}
-
 function EmailVerificationHandler({ token }: EmailVerificationHandlerProps) {
+  const t = useTranslations("auth.verification")
   const sectionRef = useRef<HTMLElement>(null)
   const { retry, state } = useVerifyEmail(token)
 
@@ -42,7 +25,7 @@ function EmailVerificationHandler({ token }: EmailVerificationHandlerProps) {
   if (state === "resolving") {
     return (
       <section ref={sectionRef} aria-live="polite" className="sr-only" role="status">
-        Validando o link de confirmação.
+        {t("resolving")}
       </section>
     )
   }
@@ -55,7 +38,9 @@ function EmailVerificationHandler({ token }: EmailVerificationHandlerProps) {
     return <UnavailableVerification sectionRef={sectionRef} onRetry={retry} />
   }
 
-  const { description, title } = getVerificationContent(state)
+  const isConfirmed = state === "confirmed" || state === "exiting"
+  const description = t(isConfirmed ? "confirmedDescription" : "confirmingDescription")
+  const title = t(isConfirmed ? "confirmedTitle" : "confirmingTitle")
 
   return (
     <section
@@ -81,27 +66,29 @@ function EmailVerificationHandler({ token }: EmailVerificationHandlerProps) {
 }
 
 function InvalidVerificationLink({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
+  const t = useTranslations("auth.verification")
+  const tShared = useTranslations("auth.shared")
   return (
     <section ref={sectionRef} aria-labelledby="invalid-verification-link-title" className="mx-auto w-full max-w-sm space-y-4">
       <header className="space-y-2" data-email-verification-handler-step>
         <h1 id="invalid-verification-link-title" className="text-heading-4 text-capta-text-primary">
-          Este link não é mais válido
+          {t("invalidTitle")}
         </h1>
         <p className="text-ui text-capta-text-secondary">
-          O link de confirmação expirou ou já foi utilizado. Solicite um novo link para continuar.
+          {t("invalidDescription")}
         </p>
       </header>
 
       <div data-email-verification-handler-step>
         <AuthNavLink className={cn(buttonVariants({ className: "w-full" }))} href="/register">
-          Solicitar novo link
+          {t("requestNewLink")}
         </AuthNavLink>
       </div>
 
       <p className="text-center text-ui text-capta-text-secondary" data-email-verification-handler-step>
-        Já possui uma conta?{" "}
+        {tShared("alreadyRegistered")}{" "}
         <AuthNavLink className="font-semibold text-capta-text-primary" href="/login">
-          Entrar
+          {tShared("signIn")}
         </AuthNavLink>
       </p>
     </section>
@@ -115,26 +102,28 @@ function UnavailableVerification({
   onRetry: () => Promise<void>
   sectionRef: RefObject<HTMLElement | null>
 }) {
+  const t = useTranslations("auth.verification")
+  const tCommon = useTranslations("common.actions")
   return (
     <section ref={sectionRef} aria-labelledby="unavailable-verification-title" className="mx-auto w-full max-w-sm space-y-4">
       <header className="space-y-2" data-email-verification-handler-step>
         <h1 id="unavailable-verification-title" className="text-heading-4 text-capta-text-primary">
-          Não foi possível confirmar seu e-mail
+          {t("unavailableTitle")}
         </h1>
         <p className="text-ui text-capta-text-secondary">
-          Não conseguimos concluir a confirmação agora. Tente novamente em instantes.
+          {t("unavailableDescription")}
         </p>
       </header>
 
       <div data-email-verification-handler-step>
         <Button className="w-full" onClick={() => void onRetry()} type="button">
-          Tentar novamente
+          {tCommon("retry")}
         </Button>
       </div>
 
       <p className="text-center text-ui text-capta-text-secondary" data-email-verification-handler-step>
         <AuthNavLink className="font-semibold text-capta-text-primary" href="/login">
-          Voltar para o login
+          {t("backToLogin")}
         </AuthNavLink>
       </p>
     </section>

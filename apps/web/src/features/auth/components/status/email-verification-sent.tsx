@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,9 @@ function hasPendingVerificationEmail(email?: string): email is string {
 }
 
 function EmailVerificationSent({ email }: EmailVerificationSentProps) {
+  const t = useTranslations("auth.verificationSent")
+  const tFields = useTranslations("auth.fields")
+  const tShared = useTranslations("auth.shared")
   const sectionRef = useRef<HTMLElement>(null)
   const { navigateWithExit } = useAuthTransitionNav()
   const { isTransitioning } = useAuthTransition()
@@ -47,20 +51,20 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
     try {
       const result = await authBffClient.resendVerification({ email })
       if (result.ok) {
-        toast.success("Verifique seu e-mail", {
-          description: "Se houver uma confirmação pendente para este endereço, enviaremos novas instruções.",
+        toast.success(t("title"), {
+          description: t("resendSuccessDescription"),
         })
       } else if (result.error.code === "RATE_LIMITED") {
-        toast.info("Aguarde antes de solicitar outro envio", {
-          description: "Para proteger sua conta, tente novamente em alguns minutos.",
+        toast.info(t("rateLimitTitle"), {
+          description: t("rateLimitDescription"),
         })
       } else {
-        toast.error("Não foi possível solicitar um novo envio", {
-          description: "Tente novamente em alguns instantes.",
+        toast.error(t("resendErrorTitle"), {
+          description: t("resendErrorDescription"),
         })
       }
     } catch {
-      toast.error("Erro de conexão ao reenviar o e-mail.")
+      toast.error(t("connectionError"))
     } finally {
       setIsResending(false)
     }
@@ -72,10 +76,10 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
         <>
           <header className="space-y-2" data-email-verification-step>
             <h1 id="email-verification-sent-title" className="text-heading-4 text-capta-text-primary">
-              Verifique seu e-mail
+              {t("title")}
             </h1>
             <p className="text-ui text-capta-text-secondary">
-              Enviamos um link de confirmação de cadastro para o e-mail informado.
+              {t("description")}
             </p>
           </header>
 
@@ -84,7 +88,7 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
               readOnly
               tabIndex={-1}
               wrapperClassName="pointer-events-none select-none bg-[var(--input-surface-disabled)] focus-within:border-[var(--input-border-default)]"
-              label="E-mail"
+              label={tFields("email")}
               value={maskEmail(email)}
             />
           </div>
@@ -96,19 +100,19 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
               onClick={() => navigateWithExit("/login")}
               type="button"
             >
-              Já confirmei meu e-mail
+              {t("confirmed")}
             </Button>
           </div>
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
-            Não recebeu?{" "}
+            {t("notReceived")}{" "}
             <button
               type="button"
               onClick={handleResendEmail}
               disabled={isResending}
               className="cursor-pointer font-semibold text-capta-text-primary motion-interactive hover:underline focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isResending ? "Reenviando..." : "Reenviar e-mail"}
+              {isResending ? t("resending") : t("resend")}
             </button>
           </p>
         </>
@@ -116,10 +120,10 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
         <>
           <header className="space-y-2" data-email-verification-step>
             <h1 id="email-verification-sent-title" className="text-heading-4 text-capta-text-primary">
-              Confirme seu e-mail
+              {t("missingTitle")}
             </h1>
             <p className="text-ui text-capta-text-secondary">
-              Para ativar sua conta, acesse o link de confirmação enviado durante o cadastro.
+              {t("missingDescription")}
             </p>
           </header>
 
@@ -130,14 +134,14 @@ function EmailVerificationSent({ email }: EmailVerificationSentProps) {
               onClick={() => navigateWithExit("/login")}
               type="button"
             >
-              Ir para login
+              {t("goToLogin")}
             </Button>
           </div>
 
           <p className="text-center text-ui text-capta-text-secondary" data-email-verification-step>
-            Ainda não possui uma conta?{" "}
+            {tShared("alreadyRegistered")}{" "}
             <AuthNavLink className="font-semibold text-capta-text-primary" href="/register">
-              Criar conta
+              {tShared("createAccount")}
             </AuthNavLink>
           </p>
         </>

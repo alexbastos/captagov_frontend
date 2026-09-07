@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
       return createSettingsResponse(context, {
         error: {
           code: "INVALID_POSTAL_CODE",
-          message: "Informe um CEP válido.",
           retryable: false,
         },
       }, 400)
@@ -43,7 +42,6 @@ export async function POST(request: NextRequest) {
       return createSettingsResponse(context, {
         error: {
           code: "POSTAL_CODE_NOT_FOUND",
-          message: "CEP não encontrado. Confira os números ou preencha o endereço manualmente.",
           retryable: false,
         },
       }, 404)
@@ -53,7 +51,6 @@ export async function POST(request: NextRequest) {
       return createSettingsResponse(context, {
         error: {
           code: "POSTAL_CODE_UNAVAILABLE",
-          message: "Não foi possível consultar o CEP agora. Preencha o endereço manualmente.",
           retryable: true,
         },
       }, 503)
@@ -65,7 +62,6 @@ export async function POST(request: NextRequest) {
       {
         error: {
           code: "POSTAL_CODE_REQUEST_FAILED",
-          message: "Não foi possível consultar o CEP agora. Preencha o endereço manualmente.",
           retryable: true,
         },
       },

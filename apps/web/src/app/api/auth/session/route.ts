@@ -2,6 +2,7 @@ import { createAuthenticationApiClient } from "@/lib/server/authentication-api"
 import { getServerEnvironment } from "@/lib/server/environment"
 import { assertTrustedRequestOrigin, InvalidRequestOriginError } from "@/lib/server/request-security"
 import { resolveServerSession } from "@/lib/server/session"
+import { setRegionalPreferenceCookies } from "@/lib/server/regional-preference"
 import type { SessionCookieOptions } from "@/lib/server/session-cookies"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
@@ -30,9 +31,10 @@ export async function POST(request: NextRequest) {
     const environment = getServerEnvironment()
     assertTrustedRequestOrigin(request, environment.appOrigin)
 
+    const client = createAuthenticationApiClient(environment)
     const pendingCookies: PendingCookie[] = []
     const session = await resolveServerSession({
-      client: createAuthenticationApiClient(environment),
+      client,
       cookieReader: request.cookies,
       cookieWriter: {
         set(name, value, options) {
@@ -43,6 +45,10 @@ export async function POST(request: NextRequest) {
 
     const response = createSessionResponse(session)
 
+    if (session.state === "authenticated") {
+      setRegionalPreferenceCookies(response.cookies, session.user.profile)
+    }
+
     for (const cookie of pendingCookies) {
       response.cookies.set(cookie.name, cookie.value, cookie.options)
     }
@@ -51,7 +57,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof InvalidRequestOriginError) {
       return NextResponse.json(
-        { error: { code: "REQUEST_NOT_ALLOWED", message: "Não foi possível concluir esta solicitação." } },
+        { error: { code: "REQUEST_NOT_ALLOWED", retryable: false } },
         { headers: NO_STORE_HEADERS, status: 403 }
       )
     }
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { authenticated: false, error: { code: "SERVICE_UNAVAILABLE" } },
+      { authenticated: false, error: { code: "SERVICE_UNAVAILABLE", retryable: true } },
       { headers: NO_STORE_HEADERS, status: 503 }
     )
   }
@@ -87,7 +93,7 @@ function createSessionResponse(session: Awaited<ReturnType<typeof resolveServerS
 
   if (session.state === "unavailable") {
     return NextResponse.json(
-      { authenticated: false, error: { code: "SERVICE_UNAVAILABLE" } },
+      { authenticated: false, error: { code: "SERVICE_UNAVAILABLE", retryable: true } },
       { headers: NO_STORE_HEADERS, status: 503 }
     )
   }

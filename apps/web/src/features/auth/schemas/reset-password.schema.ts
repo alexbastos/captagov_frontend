@@ -1,16 +1,18 @@
 import { z } from "zod"
 
-import { PasswordSchema } from "./password.schema"
+import { createPasswordSchema, type PasswordValidationMessages } from "./password.schema"
 
-const ResetPasswordSchema = z.object({
-  confirmPassword: z.string(),
-  password: PasswordSchema,
-}).refine(({ confirmPassword, password }) => password === confirmPassword, {
-  message: "As senhas não coincidem.",
-  path: ["confirmPassword"],
-})
+function createResetPasswordSchema(messages: PasswordValidationMessages & { mismatch: string }) {
+  return z.object({
+    confirmPassword: z.string(),
+    password: createPasswordSchema(messages),
+  }).refine(({ confirmPassword, password }) => password === confirmPassword, {
+    message: messages.mismatch,
+    path: ["confirmPassword"],
+  })
+}
 
-type ResetPasswordValues = z.infer<typeof ResetPasswordSchema>
+type ResetPasswordValues = z.infer<ReturnType<typeof createResetPasswordSchema>>
 
-export { ResetPasswordSchema }
+export { createResetPasswordSchema }
 export type { ResetPasswordValues }

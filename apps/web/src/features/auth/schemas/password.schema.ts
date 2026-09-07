@@ -1,12 +1,23 @@
 import { z } from "zod"
 
-const PasswordSchema = z
-  .string()
-  .min(8, "A senha deve ter ao menos 8 caracteres.")
-  .regex(/[A-Z]/, "A senha deve conter ao menos uma letra maiúscula.")
-  .regex(/[a-z]/, "A senha deve conter ao menos uma letra minúscula.")
-  .regex(/[0-9]/, "A senha deve conter ao menos um número.")
-  .regex(/[^A-Za-z0-9\s]/, "A senha deve conter ao menos um caractere especial.")
-  .regex(/^\S+$/, "A senha não pode conter espaços.")
+type PasswordValidationMessages = {
+  lowercase: string
+  min: string
+  noSpaces: string
+  number: string
+  special: string
+  uppercase: string
+}
 
-export { PasswordSchema }
+function createPasswordSchema(messages: PasswordValidationMessages) {
+  return z.string()
+    .min(8, messages.min)
+    .regex(/[A-Z]/, messages.uppercase)
+    .regex(/[a-z]/, messages.lowercase)
+    .regex(/[0-9]/, messages.number)
+    .regex(/[^A-Za-z0-9\s]/, messages.special)
+    .regex(/^\S+$/, messages.noSpaces)
+}
+
+export { createPasswordSchema }
+export type { PasswordValidationMessages }

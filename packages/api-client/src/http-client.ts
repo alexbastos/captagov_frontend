@@ -25,14 +25,20 @@ type BodyProperty<Operation> = [RequestBody<Operation>] extends [never]
   ? { body?: never }
   : { body: RequestBody<Operation> }
 
-type TypedApiRequest<Path extends ApiPath, Method extends ApiMethod<Path>> = {
+type ApiRequestMetadata<Path extends ApiPath, Method extends ApiMethod<Path>> = {
   path: Path
   method: Method
   headers?: HeadersInit
   pathParams?: Record<string, string>
   signal?: AbortSignal
-} &
+}
+
+type TypedApiRequest<Path extends ApiPath, Method extends ApiMethod<Path>> = ApiRequestMetadata<Path, Method> &
   BodyProperty<ApiOperation<Path, Method>>
+
+type TypedFormDataRequest<Path extends ApiPath, Method extends ApiMethod<Path>> = ApiRequestMetadata<Path, Method> & {
+  body: FormData
+}
 
 type HttpResult<Data> = {
   data: Data | undefined
@@ -67,6 +73,24 @@ class ApiHttpClient {
   async request<Path extends ApiPath, Method extends ApiMethod<Path>>(
     request: TypedApiRequest<Path, Method>
   ): Promise<HttpResult<ResponseBody<ApiOperation<Path, Method>>>> {
+    return this.send(
+      request,
+      request.body === undefined ? undefined : JSON.stringify(request.body),
+      request.body === undefined ? undefined : "application/json"
+    )
+  }
+
+  async requestFormData<Path extends ApiPath, Method extends ApiMethod<Path>>(
+    request: TypedFormDataRequest<Path, Method>
+  ): Promise<HttpResult<ResponseBody<ApiOperation<Path, Method>>>> {
+    return this.send(request, request.body)
+  }
+
+  private async send<Path extends ApiPath, Method extends ApiMethod<Path>>(
+    request: ApiRequestMetadata<Path, Method>,
+    body: BodyInit | undefined,
+    contentType?: string
+  ): Promise<HttpResult<ResponseBody<ApiOperation<Path, Method>>>> {
     const timeoutController = new AbortController()
     const timeout = setTimeout(() => timeoutController.abort(), this.timeoutMs)
     const signal = request.signal
@@ -76,13 +100,13 @@ class ApiHttpClient {
 
     new Headers(request.headers).forEach((value, name) => headers.set(name, value))
 
-    if (request.body !== undefined && !headers.has("content-type")) {
-      headers.set("content-type", "application/json")
+    if (contentType && !headers.has("content-type")) {
+      headers.set("content-type", contentType)
     }
 
     try {
       const response = await this.fetchImplementation(this.resolveUrl(request.path, request.pathParams), {
-        body: request.body === undefined ? undefined : JSON.stringify(request.body),
+        body,
         cache: "no-store",
         headers,
         method: request.method.toUpperCase(),
@@ -130,4 +154,4 @@ async function readJsonBody(response: Response): Promise<unknown | undefined> {
 }
 
 export { ApiHttpClient }
-export type { ApiHttpClientOptions, HttpResult, TypedApiRequest }
+export type { ApiHttpClientOptions, HttpResult, TypedApiRequest, TypedFormDataRequest }

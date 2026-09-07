@@ -30,7 +30,9 @@
 
   /* Utilitários Tailwind: bg-capta-surface-card, text-capta-text-primary, etc. */
   --color-capta-surface-default: var(--color-surface-default);
+  --color-capta-surface-sidebar: var(--color-surface-sidebar);
   --color-capta-surface-workspace: var(--color-surface-workspace);
+  --color-capta-surface-stage: var(--color-surface-stage);
   --color-capta-surface-raised: var(--color-surface-raised);
   --color-capta-surface-card: var(--color-surface-card);
   --color-capta-surface-inverse: var(--color-surface-inverse);
@@ -53,6 +55,8 @@
   --color-capta-brand-primary-disabled: var(--color-brand-primary-disabled);
   --color-capta-brand-accent: var(--color-brand-accent);
   --color-capta-brand-secondary: var(--color-brand-secondary);
+  --color-capta-product-intelligence: var(--color-product-intelligence);
+  --color-capta-product-notices: var(--color-product-notices);
   --color-capta-feedback-success: var(--color-feedback-success);
   --color-capta-feedback-warning: var(--color-feedback-warning);
   --color-capta-feedback-error: var(--color-feedback-error);
@@ -152,7 +156,9 @@
 
   /* Cores semânticas */
   --color-surface-default: #ececee;
+  --color-surface-sidebar: var(--color-surface-workspace);
   --color-surface-workspace: #fafafa;
+  --color-surface-stage: var(--color-surface-card);
   --color-surface-raised: rgb(250 250 250 / 66.67%);
   --color-surface-card: #ffffff;
   --color-surface-inverse: #0b1f3a;
@@ -175,6 +181,8 @@
   --color-brand-primary-disabled: #c9c9c9;
   --color-brand-accent: #c88b1d;
   --color-brand-secondary: #315fcd;
+  --color-product-intelligence: var(--color-brand-secondary);
+  --color-product-notices: var(--color-coral-700);
   --color-feedback-success: var(--color-sage-700);
   --color-feedback-warning: var(--color-amber-700);
   --color-feedback-error: var(--color-coral-700);
@@ -185,6 +193,7 @@
   --button-primary-background-hover: var(--color-brand-primary-hover);
   --button-primary-background-active: var(--color-brand-primary-active);
   --button-primary-background-disabled: var(--color-brand-primary-disabled);
+  --button-primary-text-disabled: var(--button-text-disabled);
   --button-secondary-background-default: var(--color-surface-card);
   --button-secondary-background-hover: var(--color-surface-subtle);
   --button-secondary-background-active: var(--color-surface-subtle-hover);
@@ -194,6 +203,7 @@
   --button-danger-background-hover: var(--color-coral-800);
   --button-danger-background-active: var(--color-coral-900);
   --button-danger-background-disabled: var(--color-brand-primary-disabled);
+  --button-danger-text-disabled: var(--button-text-disabled);
   --button-text-inverse: var(--color-text-inverse);
   --button-text-default: var(--color-text-primary);
   --button-text-disabled: var(--color-text-disabled);
@@ -249,6 +259,9 @@
   --checkbox-border-disabled: var(--color-brand-primary-disabled);
   --checkbox-icon: var(--color-text-inverse);
 
+  /* Avatar de perfil */
+  --profile-avatar-surface: var(--color-brand-primary);
+
   /* Card — tokens semânticos documentados no Figma */
   --card-base-gap: var(--space-4);
   --card-base-padding: var(--space-8);
@@ -287,6 +300,7 @@
   --radius-token-full: 9999px;
   --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%);
   --shadow-card-layered: 0 1px 3px rgb(0 0 0 / 2%);
+  --shadow-analysis-success: 0 0 0 3px color-mix(in srgb, var(--color-feedback-success) 16%, transparent);
   --shadow-card-analytics: 0 1px 2px rgb(0 0 0 / 5%);
   --shadow-stage: -2px -2px 10px rgb(0 0 0 / 2%);
 
@@ -333,6 +347,10 @@
   --layout-header-height: 4rem;
   --layout-stage-gap-top: 0.5rem;
   --layout-stage-radius-top-left: 1.25rem;
+  --layout-landing-max-width: 71.25rem;
+  --layout-landing-half-width: 35.625rem;
+  --landing-grid-border: #e5e5e5;
+  --landing-grid-line: rgb(229 229 229 / 60%);
 
   /* Mapeamento shadcn/ui */
   --background: var(--color-surface-default);
@@ -369,6 +387,141 @@
   --sidebar-ring: var(--color-border-focus);
   --default-transition-duration: var(--motion-duration-fast);
   --default-transition-timing-function: var(--motion-ease-standard);
+}
+
+.dark {
+  /* Superfícies: navegação mais escura, palco principal #171717 e elevação gradual. */
+  --color-surface-default: var(--color-neutral-950);
+  --color-surface-sidebar: var(--color-neutral-950);
+  --color-surface-workspace: var(--color-neutral-950);
+  --color-surface-stage: var(--color-neutral-900);
+  --color-surface-raised: #202020;
+  --color-surface-card: #242424;
+  --color-surface-inverse: var(--color-neutral-100);
+  --color-surface-subtle: #2a2a2a;
+  --color-surface-subtle-hover: #333333;
+  --color-surface-hover: #2d2d2d;
+  --color-surface-selected: #363636;
+  --color-surface-muted: #202020;
+  --color-surface-accent: #2b261c;
+
+  /* Tipografia e contornos: pares de leitura AA no palco. */
+  --color-text-primary: var(--color-neutral-100);
+  --color-text-secondary: var(--color-neutral-400);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-disabled: var(--color-neutral-700);
+  --color-text-inverse: var(--color-neutral-0);
+  --color-border-default: var(--color-neutral-800);
+  --color-border-focus: var(--color-neutral-400);
+
+  /* Ações: no dark mode, o primário deixa de ser azul e passa a ser neutro claro. */
+  --color-brand-primary: var(--color-neutral-100);
+  --color-brand-primary-hover: var(--color-neutral-0);
+  --color-brand-primary-active: var(--color-neutral-300);
+  --color-brand-primary-disabled: var(--color-neutral-700);
+  --color-brand-accent: #e3b35b;
+  --color-brand-secondary: #8aa9ff;
+  --color-product-intelligence: #315fcd;
+  --color-product-notices: var(--color-coral-700);
+
+  /* Feedbacks usam os tons 500, mais legíveis em fundos escuros que os tons 700 do tema claro. */
+  --color-feedback-success: var(--color-sage-500);
+  --color-feedback-warning: var(--color-amber-500);
+  --color-feedback-error: var(--color-coral-500);
+  --color-feedback-info: var(--color-steel-500);
+
+  /* Controles de ação. Nomes semânticos evitam o uso de `dark:` nos componentes. */
+  --button-primary-background-default: var(--color-neutral-100);
+  --button-primary-background-hover: var(--color-neutral-0);
+  --button-primary-background-active: var(--color-neutral-300);
+  --button-primary-background-disabled: var(--color-neutral-600);
+  --button-primary-text-disabled: var(--color-neutral-950);
+  --button-secondary-background-default: var(--color-surface-card);
+  --button-secondary-background-hover: var(--color-surface-subtle);
+  --button-secondary-background-active: var(--color-surface-subtle-hover);
+  --button-ghost-background-hover: var(--color-surface-subtle);
+  --button-ghost-background-active: var(--color-surface-subtle-hover);
+  --button-danger-background-default: var(--color-coral-500);
+  --button-danger-background-hover: var(--color-coral-700);
+  --button-danger-background-active: var(--color-coral-800);
+  --button-danger-background-disabled: var(--color-neutral-600);
+  --button-danger-text-disabled: var(--color-neutral-950);
+  --button-text-inverse: var(--color-neutral-900);
+  --button-text-default: var(--color-text-primary);
+  --button-text-disabled: var(--color-neutral-600);
+  --button-border-default: var(--color-border-default);
+  --button-focus-color: var(--color-neutral-700);
+
+  /* Campos e seletores. */
+  --input-surface-default: var(--color-surface-card);
+  --input-surface-disabled: var(--color-surface-subtle);
+  --input-border-default: var(--color-border-default);
+  --input-border-focus: var(--color-border-focus);
+  --input-border-error: var(--color-feedback-error);
+  --input-text: var(--color-text-primary);
+  --input-text-disabled: var(--color-text-disabled);
+  --input-placeholder: var(--color-text-muted);
+  --input-field-label-color: var(--color-text-secondary);
+  --input-field-label-color-disabled: var(--color-text-disabled);
+  --input-field-helper-color: var(--color-text-muted);
+  --input-field-helper-color-disabled: var(--color-text-disabled);
+
+  /* Seleção e formulários compactos. */
+  --checkbox-surface-default: var(--color-surface-card);
+  --checkbox-surface-checked: var(--color-neutral-100);
+  --checkbox-surface-hover: var(--color-neutral-0);
+  --checkbox-surface-disabled: var(--color-neutral-700);
+  --checkbox-border-default: var(--color-border-default);
+  --checkbox-border-hover: var(--color-neutral-400);
+  --checkbox-border-focus: var(--color-border-focus);
+  --checkbox-border-disabled: var(--color-neutral-700);
+  --checkbox-icon: var(--color-neutral-900);
+
+  /* Avatar de perfil */
+  --profile-avatar-surface: var(--color-brand-secondary);
+
+  /* Cartões e superfícies compostas. */
+  --card-composite-surface: var(--color-surface-raised);
+  --card-composite-border: var(--color-border-default);
+  --card-composite-shadow-footer: 0 1px 3px rgb(0 0 0 / 24%);
+  --card-header-text: var(--color-text-secondary);
+  --shadow-card: 0 4px 10px rgb(0 0 0 / 28%);
+  --shadow-card-layered: 0 1px 3px rgb(0 0 0 / 20%);
+  --shadow-card-analytics: 0 1px 2px rgb(0 0 0 / 24%);
+  --shadow-stage: -2px -2px 10px rgb(0 0 0 / 20%);
+
+  /* Compatibilidade shadcn/ui e visualizações. */
+  --background: var(--color-surface-default);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface-card);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface-card);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--button-primary-background-default);
+  --primary-foreground: var(--button-text-inverse);
+  --secondary: var(--button-secondary-background-default);
+  --secondary-foreground: var(--button-text-default);
+  --muted: var(--color-surface-subtle);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-surface-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-feedback-error);
+  --border: var(--color-border-default);
+  --input: var(--input-border-default);
+  --ring: var(--color-border-focus);
+  --chart-1: #60a5fa;
+  --chart-2: var(--color-sage-500);
+  --chart-3: var(--color-amber-500);
+  --chart-4: #a78bfa;
+  --chart-5: #38bdf8;
+  --sidebar: var(--color-surface-sidebar);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--button-primary-background-default);
+  --sidebar-primary-foreground: var(--button-text-inverse);
+  --sidebar-accent: var(--color-surface-selected);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border-default);
+  --sidebar-ring: var(--color-border-focus);
 }
 
 @layer base {

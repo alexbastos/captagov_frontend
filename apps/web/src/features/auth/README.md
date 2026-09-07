@@ -16,3 +16,9 @@ Os fluxos públicos usam o `AuthPageShell` no layout compartilhado de autentica�
 - `types/`: contratos públicos e sanitizados. Tokens não pertencem a esta área.
 
 O BFF, cookies e tokens permanecem em `src/lib/server/` e nunca podem ser importados por esta feature.
+
+## Contrato de erros
+
+Falhas do BFF expõem somente `code` e `retryable`. Textos humanos não fazem
+parte do contrato HTTP. O hook `useAuthErrorNotification` concentra o
+mapeamento de códigos para títulos e descrições localizados.

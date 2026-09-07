@@ -1,16 +1,22 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
 import { useState, type ReactNode } from "react";
+import type { AbstractIntlMessages } from "next-intl";
 
 import { Toaster } from "@/components/ui/sonner";
 import { LoginHandoffProvider } from "@/components/shared/login-handoff/login-handoff-provider";
+import type { AppLocale } from "@/i18n/config";
 
 type ProvidersProps = {
   children: ReactNode;
+  locale: AppLocale;
+  messages: AbstractIntlMessages;
+  timeZone: string;
 };
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, locale, messages, timeZone }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -24,9 +30,11 @@ export function Providers({ children }: ProvidersProps) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <LoginHandoffProvider>{children}</LoginHandoffProvider>
-      <Toaster />
-    </QueryClientProvider>
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
+      <QueryClientProvider client={queryClient}>
+        <LoginHandoffProvider>{children}</LoginHandoffProvider>
+        <Toaster />
+      </QueryClientProvider>
+    </NextIntlClientProvider>
   );
 }

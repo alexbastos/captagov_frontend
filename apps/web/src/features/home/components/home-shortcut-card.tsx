@@ -1,6 +1,11 @@
+"use client"
+
 import { ArrowUpRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
+
+import { useAppTheme } from "@/components/shared/app-shell"
 
 import type { HomeShortcut } from "../types"
 
@@ -9,6 +14,10 @@ type HomeShortcutCardProps = {
 }
 
 function HomeShortcutCard({ shortcut }: HomeShortcutCardProps) {
+  const t = useTranslations("home.shortcuts")
+  const { resolvedTheme } = useAppTheme()
+  const imageSrc = resolvedTheme === "dark" ? shortcut.imageDark ?? shortcut.image : shortcut.image
+
   return (
     <Link
       data-home-shortcut-card
@@ -17,10 +26,10 @@ function HomeShortcutCard({ shortcut }: HomeShortcutCardProps) {
     >
       <article className="flex w-full flex-col">
         <div className="relative h-[180px] overflow-hidden bg-capta-surface-card p-4 sm:h-[210px] sm:p-5">
-          <Image alt={shortcut.imageAlt} className="object-contain transition-transform duration-[250ms] group-hover:-translate-y-1.5 group-hover:scale-[1.04]" fill sizes="(max-width: 768px) 100vw, 33vw" src={shortcut.image} />
+          <Image alt={t(shortcut.imageAltKey)} className="object-contain transition-transform duration-[250ms] group-hover:-translate-y-1.5 group-hover:scale-[1.04]" fill sizes="(max-width: 768px) 100vw, 33vw" src={imageSrc} />
         </div>
         <div className="flex items-center justify-between gap-4 border-t border-capta-border-default bg-capta-surface-workspace px-5 py-[18px] sm:px-6 sm:py-5">
-          <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-capta-text-primary sm:text-[18px]">{shortcut.title}</h3>
+          <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-capta-text-primary sm:text-[18px]">{t(shortcut.titleKey)}</h3>
           <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full border border-capta-border-default text-capta-text-secondary transition-[background-color,color] duration-[250ms] group-hover:bg-capta-text-primary group-hover:text-capta-text-inverse">
             <ArrowUpRight className="size-4 transition-transform duration-[250ms] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </span>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { InputField } from "@/components/ui/input-field"
@@ -12,6 +13,7 @@ import { useRegisterFormEntrance } from "../../hooks/animations/use-register-for
 import { useRegister } from "../../hooks/use-register"
 
 function RegisterForm() {
+  const t = useTranslations("auth")
   const { form, isSubmitting, onSubmit } = useRegister()
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -20,17 +22,17 @@ function RegisterForm() {
   return (
     <div ref={formRef} className="space-y-4">
       <div className="space-y-2 text-center" data-register-step>
-        <h1 className="text-heading-4 text-capta-text-primary">Crie sua conta</h1>
-        <p className="text-ui text-capta-text-secondary">Informe seus dados para começar a utilizar a plataforma.</p>
+        <h1 className="text-heading-4 text-capta-text-primary">{t("register.title")}</h1>
+        <p className="text-ui text-capta-text-secondary">{t("register.description")}</p>
       </div>
 
       <div data-register-step>
         <GoogleAuthButton />
       </div>
 
-      <div aria-label="ou entre com e-mail e senha" className="flex items-center gap-3" data-register-step role="separator">
+      <div aria-label={t("shared.emailDividerLabel")} className="flex items-center gap-3" data-register-step role="separator">
         <div className="h-px flex-1 bg-capta-border-default" />
-        <span className="text-ui text-capta-text-secondary">ou entre com</span>
+        <span className="text-ui text-capta-text-secondary">{t("shared.emailDivider")}</span>
         <div className="h-px flex-1 bg-capta-border-default" />
       </div>
 
@@ -40,8 +42,8 @@ function RegisterForm() {
             {...form.register("name")}
             autoComplete="name"
             error={form.formState.errors.name?.message}
-            label="Nome completo"
-            placeholder="Digite seu nome"
+            label={t("fields.fullName")}
+            placeholder={t("fields.fullNamePlaceholder")}
             required
           />
         </div>
@@ -51,8 +53,8 @@ function RegisterForm() {
             {...form.register("email")}
             autoComplete="email"
             error={form.formState.errors.email?.message}
-            label="E-mail"
-            placeholder="Digite seu email"
+            label={t("fields.email")}
+            placeholder={t("fields.emailPlaceholder")}
             required
             type="email"
           />
@@ -63,26 +65,26 @@ function RegisterForm() {
             {...form.register("password")}
             autoComplete="new-password"
             error={form.formState.errors.password?.message}
-            label="Senha"
-            placeholder="Digite sua senha"
+            label={t("fields.password")}
+            placeholder={t("fields.passwordPlaceholder")}
             required
           />
         </div>
 
         <div data-register-step>
           <Button className="w-full" loading={isSubmitting} type="submit">
-            Criar conta
+            {t("register.submit")}
           </Button>
         </div>
       </form>
 
       <p className="text-center text-ui text-capta-text-secondary" data-register-step>
-        Já possui uma conta?{" "}
+        {t("shared.alreadyRegistered")}{" "}
         <AuthNavLink
           className="font-semibold text-capta-text-primary"
           href="/login"
         >
-          Entrar
+          {t("shared.signIn")}
         </AuthNavLink>
       </p>
     </div>

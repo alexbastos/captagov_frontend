@@ -15,7 +15,6 @@ type AuthBffErrorCode =
 
 type AuthBffError = {
   code: AuthBffErrorCode
-  message: string
   retryable: boolean
 }
 

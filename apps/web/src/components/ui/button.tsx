@@ -11,13 +11,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-[var(--button-primary-background-default)] text-[var(--button-text-inverse)] hover:bg-[var(--button-primary-background-hover)] active:bg-[var(--button-primary-background-active)] disabled:bg-[var(--button-primary-background-disabled)] disabled:text-[var(--button-text-disabled)]",
+          "bg-[var(--button-primary-background-default)] text-[var(--button-text-inverse)] hover:bg-[var(--button-primary-background-hover)] active:bg-[var(--button-primary-background-active)] disabled:bg-[var(--button-primary-background-disabled)] disabled:text-[var(--button-primary-text-disabled)]",
         secondary:
           "border-[var(--button-border-default)] bg-[var(--button-secondary-background-default)] text-[var(--button-text-default)] hover:bg-[var(--button-secondary-background-hover)] active:bg-[var(--button-secondary-background-active)] disabled:text-[var(--button-text-disabled)]",
         ghost:
           "bg-transparent text-[var(--button-text-default)] hover:bg-[var(--button-ghost-background-hover)] active:bg-[var(--button-ghost-background-active)] disabled:text-[var(--button-text-disabled)]",
         danger:
-          "bg-[var(--button-danger-background-default)] text-[var(--button-text-inverse)] hover:bg-[var(--button-danger-background-hover)] active:bg-[var(--button-danger-background-active)] disabled:bg-[var(--button-danger-background-disabled)] disabled:text-[var(--button-text-disabled)]",
+          "bg-[var(--button-danger-background-default)] text-[var(--button-text-inverse)] hover:bg-[var(--button-danger-background-hover)] active:bg-[var(--button-danger-background-active)] disabled:bg-[var(--button-danger-background-disabled)] disabled:text-[var(--button-danger-text-disabled)]",
       },
       size: {
         sm: "h-[var(--button-height-sm)] gap-[var(--button-gap-sm)] px-[var(--button-padding-inline-sm)] [&_svg:not([class*='size-'])]:size-3.5",

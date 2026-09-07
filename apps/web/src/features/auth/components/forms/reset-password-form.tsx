@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { PasswordInputField } from "@/components/ui/password-input-field"
@@ -14,6 +15,7 @@ type ResetPasswordFormProps = {
 }
 
 function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const t = useTranslations("auth")
   const { form, isSubmitting, onSubmit } = useResetPassword(token)
   const formRef = useRef<HTMLElement>(null)
 
@@ -22,9 +24,9 @@ function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   return (
     <section ref={formRef} className="mx-auto w-full max-w-sm space-y-4">
       <header className="space-y-2" data-reset-password-step>
-        <h1 className="text-heading-4 text-capta-text-primary">Redefina sua senha</h1>
+        <h1 className="text-heading-4 text-capta-text-primary">{t("resetPassword.title")}</h1>
         <p className="text-ui text-capta-text-secondary">
-          Crie uma nova senha para recuperar o acesso à sua conta.
+          {t("resetPassword.description")}
         </p>
       </header>
 
@@ -34,8 +36,8 @@ function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             {...form.register("password")}
             autoComplete="new-password"
             error={form.formState.errors.password?.message}
-            label="Nova senha"
-            placeholder="Digite sua nova senha"
+            label={t("fields.newPassword")}
+            placeholder={t("fields.newPasswordPlaceholder")}
             required
           />
         </div>
@@ -44,22 +46,22 @@ function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             {...form.register("confirmPassword")}
             autoComplete="new-password"
             error={form.formState.errors.confirmPassword?.message}
-            label="Confirmar nova senha"
-            placeholder="Confirme sua nova senha"
+            label={t("fields.confirmPassword")}
+            placeholder={t("fields.confirmPasswordPlaceholder")}
             required
           />
         </div>
         <div data-reset-password-step>
           <Button className="w-full" loading={isSubmitting} type="submit">
-            Redefinir senha
+            {t("resetPassword.submit")}
           </Button>
         </div>
       </form>
 
       <p className="text-center text-ui text-capta-text-secondary" data-reset-password-step>
-        Lembrou sua senha?{" "}
+        {t("shared.rememberedPassword")}{" "}
         <AuthNavLink className="font-semibold text-capta-text-primary" href="/login">
-          Entrar
+          {t("shared.signIn")}
         </AuthNavLink>
       </p>
     </section>

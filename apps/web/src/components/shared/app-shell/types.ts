@@ -3,10 +3,9 @@ import type { ComponentType, ReactNode, SVGProps } from "react"
 type AppSidebarState = "collapsed" | "expanded"
 
 type AppNavigationItem = {
-  context: string
   href: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
-  label: string
+  translationKey: "help" | "home" | "settings"
 }
 
 type HeaderAppProps = {

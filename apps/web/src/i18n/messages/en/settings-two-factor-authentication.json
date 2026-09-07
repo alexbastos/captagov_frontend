@@ -1,0 +1,18 @@
+{
+  "twoFactorAuthentication": {
+    "title": "Two-step verification",
+    "description": "We recommend requiring a verification code in addition to your password to protect your account.",
+    "authenticatorApp": "Authenticator app (TOTP)",
+    "configureAction": "Set up",
+    "back": "Back",
+    "disabled": "disabled",
+    "enabled": "enabled",
+    "toggleAuthenticatorApp": "Turn the authenticator app on or off",
+    "setupTitle": "Enable two-step verification",
+    "setupDescription": "Scan the QR code with an authenticator app, such as Google Authenticator or Authy.",
+    "setupPending": "The QR code will be available when secure setup is ready.",
+    "qrCodePlaceholderLabel": "Setup QR code unavailable",
+    "verificationCode": "Verification code",
+    "verificationCodePending": "Enter the six-digit code after scanning the QR code."
+  }
+}

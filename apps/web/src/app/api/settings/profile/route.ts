@@ -11,6 +11,7 @@ import {
   createSettingsResponse,
   getAuthenticatedSettingsContext,
 } from "@/lib/server/settings-bff-route"
+import { setRegionalPreferenceCookies } from "@/lib/server/regional-preference"
 import type { NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
@@ -45,11 +46,14 @@ export async function PUT(request: NextRequest) {
       accessToken: context.session.accessToken,
     })
 
-    if (upstreamResponse.status !== 200 || !upstreamResponse.data) {
+    if (upstreamResponse.status !== 200 || !upstreamResponse.data || !("profile" in upstreamResponse.data)) {
       return applySettingsSessionCookies(context, createUpstreamErrorResponse("update-profile", upstreamResponse))
     }
 
-    return createSettingsResponse(context, { user: upstreamResponse.data })
+    const response = createSettingsResponse(context, { user: upstreamResponse.data })
+    setRegionalPreferenceCookies(response.cookies, upstreamResponse.data.profile)
+
+    return response
   } catch (error) {
     return createUnexpectedRouteErrorResponse("update-profile", error)
   }

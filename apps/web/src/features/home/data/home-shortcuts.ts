@@ -4,20 +4,23 @@ const homeShortcuts: HomeShortcut[] = [
   {
     href: "/app/editais",
     image: "/images/home/img_background_card_home_1.avif",
-    imageAlt: "Mão segurando uma lupa",
-    title: "Mapeamento de Editais",
+    imageDark: "/images/home/img_background_card_home_1_dark_mode.avif",
+    imageAltKey: "grantsImageAlt",
+    titleKey: "grants",
   },
   {
     href: "/app/troni",
     image: "/images/home/img_background_card_home_2.avif",
-    imageAlt: "Perfil humano com elementos de inteligência artificial",
-    title: "Assistente Troni",
+    imageDark: "/images/home/img_background_card_home_2_dark_mode.avif",
+    imageAltKey: "troniImageAlt",
+    titleKey: "troni",
   },
   {
     href: "/app/alertas",
     image: "/images/home/img_background_card_home_3.avif",
-    imageAlt: "Megafone emitindo alertas",
-    title: "Alertas e Prazos Críticos",
+    imageDark: "/images/home/img_background_card_home_3_dark_mode.avif",
+    imageAltKey: "alertsImageAlt",
+    titleKey: "alerts",
   },
 ]
 

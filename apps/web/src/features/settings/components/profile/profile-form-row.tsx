@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useRef, useState } from "react"
 import type { UseFormRegisterReturn } from "react-hook-form"
 
@@ -87,6 +88,9 @@ function ProfileDateRow({ error, label, onValueChange, value }: ProfileDateRowPr
 }
 
 function ProfileTextAreaRow({ error, onValueChange, showDivider = true, value }: ProfileTextAreaRowProps) {
+  const t = useTranslations("settings.fields")
+  const tActions = useTranslations("common.actions")
+  const tAccessibility = useTranslations("common.accessibility")
   const inputId = "profile-bio"
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [draft, setDraft] = useState(value)
@@ -116,7 +120,7 @@ function ProfileTextAreaRow({ error, onValueChange, showDivider = true, value }:
 
   return (
     <div className={showDivider ? "border-b border-capta-border-default py-4" : "py-4"}>
-      <label className="text-caption font-semibold text-capta-text-muted" htmlFor={inputId}>Biografia</label>
+      <label className="text-caption font-semibold text-capta-text-muted" htmlFor={inputId}>{t("bio")}</label>
       {isEditing ? (
         <div className="mt-1.5">
           <textarea
@@ -125,25 +129,25 @@ function ProfileTextAreaRow({ error, onValueChange, showDivider = true, value }:
             id={inputId}
             maxLength={500}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Conte um pouco sobre você."
+            placeholder={t("bioPlaceholder")}
             ref={textareaRef}
             rows={3}
             value={draft}
           />
           <div className="mt-3 flex justify-end gap-2">
-            <Button onClick={cancelEditing} size="sm" type="button" variant="ghost">Cancelar</Button>
-            <Button onClick={saveDraft} size="sm" type="button">Salvar</Button>
+            <Button onClick={cancelEditing} size="sm" type="button" variant="ghost">{tActions("cancel")}</Button>
+            <Button onClick={saveDraft} size="sm" type="button">{tActions("save")}</Button>
           </div>
         </div>
       ) : (
         <div className="mt-1.5 flex items-start gap-3">
           <p className={`min-w-0 flex-1 text-ui ${value ? "font-semibold text-capta-text-primary" : "font-normal text-capta-text-muted"}`}>
-            {value || "Conte um pouco sobre você."}
+            {value || t("bioPlaceholder")}
           </p>
           <button
             aria-controls={inputId}
             aria-expanded={false}
-            aria-label="Editar biografia"
+            aria-label={tAccessibility("editField", { field: t("bio") })}
             className="shrink-0 cursor-pointer rounded-sm p-1 text-capta-text-muted transition-colors hover:text-capta-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-capta-brand-primary"
             onClick={() => setIsEditing(true)}
             type="button"
@@ -163,9 +167,10 @@ type EditFieldButtonProps = {
 }
 
 function EditFieldButton({ inputId, label }: EditFieldButtonProps) {
+  const t = useTranslations("common.accessibility")
   return (
     <button
-      aria-label={`Editar ${label.toLocaleLowerCase("pt-BR")}`}
+      aria-label={t("editField", { field: label })}
       className="shrink-0 cursor-pointer rounded-sm p-1 text-capta-text-muted transition-colors hover:text-capta-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-capta-brand-primary"
       onClick={() => {
         const field = document.getElementById(inputId)

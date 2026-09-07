@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -13,6 +14,7 @@ type AuthBackLinkProps = {
 }
 
 function AuthBackLink({ className }: AuthBackLinkProps) {
+  const t = useTranslations("auth.shell")
   const pathname = usePathname()
   const { navigateWithExit } = useAuthTransitionNav()
   const { isTransitioning } = useAuthTransition()
@@ -30,7 +32,7 @@ function AuthBackLink({ className }: AuthBackLinkProps) {
       type="button"
     >
       <ArrowLeft aria-hidden="true" className="size-4" />
-      Voltar
+      {t("back")}
     </button>
   )
 }

@@ -1,10 +1,10 @@
 import { z } from "zod"
 
-const VerifyEmailSchema = z.object({
-  token: z.string().trim().min(1, "O link de verificação é inválido.").max(4096),
-})
+function createVerifyEmailSchema(invalidLink: string) {
+  return z.object({ token: z.string().trim().min(1, invalidLink).max(4096) })
+}
 
-type VerifyEmailValues = z.infer<typeof VerifyEmailSchema>
+type VerifyEmailValues = z.infer<ReturnType<typeof createVerifyEmailSchema>>
 
-export { VerifyEmailSchema }
+export { createVerifyEmailSchema }
 export type { VerifyEmailValues }

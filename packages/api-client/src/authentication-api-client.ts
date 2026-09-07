@@ -11,6 +11,7 @@ const RESEND_VERIFICATION_PATH = "/authentication_api/api/v1/auth/resend-verific
 const REFRESH_PATH = "/authentication_api/api/v1/auth/refresh" as const
 const LOGOUT_PATH = "/authentication_api/api/v1/auth/logout" as const
 const CURRENT_USER_PATH = "/authentication_api/api/v1/users/me" as const
+const CURRENT_USER_AVATAR_PATH = "/authentication_api/api/v1/users/me/avatar" as const
 const USER_PATH = "/authentication_api/api/v1/users/{id}" as const
 const CHANGE_PASSWORD_PATH = "/authentication_api/api/v1/auth/change-password" as const
 const ACTIVE_SESSIONS_PATH = "/authentication_api/api/v1/users/me/sessions" as const
@@ -18,6 +19,13 @@ const ACTIVE_SESSION_PATH = "/authentication_api/api/v1/users/me/sessions/{id}" 
 const LOGIN_HISTORY_PATH = "/authentication_api/api/v1/users/me/login-history" as const
 const SOCIAL_ACCOUNTS_PATH = "/authentication_api/api/v1/users/me/social" as const
 const SOCIAL_ACCOUNT_PATH = "/authentication_api/api/v1/users/me/social/{provider}" as const
+const MFA_SETUP_PATH = "/authentication_api/api/v1/auth/mfa/setup" as const
+const MFA_VERIFY_SETUP_PATH = "/authentication_api/api/v1/auth/mfa/verify-setup" as const
+const MFA_VERIFY_PATH = "/authentication_api/api/v1/auth/mfa/verify" as const
+const MFA_DISABLE_PATH = "/authentication_api/api/v1/auth/mfa/disable" as const
+const MFA_STATUS_PATH = "/authentication_api/api/v1/auth/mfa/status" as const
+const MFA_RECOVERY_CODES_PATH = "/authentication_api/api/v1/auth/mfa/recovery-codes/regenerate" as const
+const MFA_EMAIL_CODE_PATH = "/authentication_api/api/v1/auth/mfa/email-code" as const
 
 type AuthenticationPath = keyof paths
 
@@ -48,6 +56,12 @@ type LogoutInput = JsonRequest<typeof LOGOUT_PATH, "post">
 type UpdateCurrentUserInput = Omit<JsonRequest<typeof USER_PATH, "put">, "role">
 type ChangePasswordInput = JsonRequest<typeof CHANGE_PASSWORD_PATH, "put">
 type LinkSocialAccountInput = JsonRequest<typeof SOCIAL_ACCOUNTS_PATH, "post">
+type MfaSetupInput = JsonRequest<typeof MFA_SETUP_PATH, "post">
+type MfaVerifySetupInput = JsonRequest<typeof MFA_VERIFY_SETUP_PATH, "post">
+type MfaVerifyInput = JsonRequest<typeof MFA_VERIFY_PATH, "post">
+type MfaDisableInput = JsonRequest<typeof MFA_DISABLE_PATH, "post">
+type MfaRegenerateRecoveryCodesInput = JsonRequest<typeof MFA_RECOVERY_CODES_PATH, "post">
+type MfaEmailCodeInput = JsonRequest<typeof MFA_EMAIL_CODE_PATH, "post">
 
 type RegisterResponse = JsonResponse<typeof REGISTER_PATH, "post", 201>
 type LoginResponse = JsonResponse<typeof LOGIN_PATH, "post", 200>
@@ -58,11 +72,20 @@ type ResetPasswordResponse = JsonResponse<typeof RESET_PASSWORD_PATH, "post", 20
 type ResendVerificationResponse = JsonResponse<typeof RESEND_VERIFICATION_PATH, "post", 200>
 type RefreshResponse = JsonResponse<typeof REFRESH_PATH, "post", 200>
 type CurrentUserResponse = JsonResponse<typeof CURRENT_USER_PATH, "get", 200>
+type UploadCurrentUserAvatarResponse = JsonResponse<typeof CURRENT_USER_AVATAR_PATH, "post", 200>
+type DeleteCurrentUserAvatarResponse = JsonResponse<typeof CURRENT_USER_AVATAR_PATH, "delete", 200>
 type UpdatedUserResponse = JsonResponse<typeof USER_PATH, "put", 200>
 type ChangePasswordResponse = JsonResponse<typeof CHANGE_PASSWORD_PATH, "put", 200>
 type ActiveSessionsResponse = JsonResponse<typeof ACTIVE_SESSIONS_PATH, "get", 200>
 type LoginHistoryResponse = JsonResponse<typeof LOGIN_HISTORY_PATH, "get", 200>
 type LinkSocialAccountResponse = JsonResponse<typeof SOCIAL_ACCOUNTS_PATH, "post", 200>
+type MfaSetupResponse = JsonResponse<typeof MFA_SETUP_PATH, "post", 200>
+type MfaVerifySetupResponse = JsonResponse<typeof MFA_VERIFY_SETUP_PATH, "post", 200>
+type MfaVerifyResponse = JsonResponse<typeof MFA_VERIFY_PATH, "post", 200>
+type MfaDisableResponse = JsonResponse<typeof MFA_DISABLE_PATH, "post", 200>
+type MfaStatusResponse = JsonResponse<typeof MFA_STATUS_PATH, "get", 200>
+type MfaRegenerateRecoveryCodesResponse = JsonResponse<typeof MFA_RECOVERY_CODES_PATH, "post", 200>
+type MfaEmailCodeResponse = JsonResponse<typeof MFA_EMAIL_CODE_PATH, "post", 200>
 
 type RequestOptions = {
   signal?: AbortSignal
@@ -195,6 +218,99 @@ class AuthenticationApiClient {
     })
   }
 
+  uploadCurrentUserAvatar(avatar: File, options: AuthenticatedRequestOptions) {
+    if (avatar.size === 0) {
+      throw new Error("avatar must not be empty")
+    }
+
+    const body = new FormData()
+    body.append("avatar", avatar)
+
+    return this.httpClient.requestFormData({
+      body,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: CURRENT_USER_AVATAR_PATH,
+      signal: options.signal,
+    })
+  }
+
+  deleteCurrentUserAvatar(options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "delete",
+      path: CURRENT_USER_AVATAR_PATH,
+      signal: options.signal,
+    })
+  }
+
+  setupMfa(input: MfaSetupInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: MFA_SETUP_PATH,
+      signal: options.signal,
+    })
+  }
+
+  verifyMfaSetup(input: MfaVerifySetupInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: MFA_VERIFY_SETUP_PATH,
+      signal: options.signal,
+    })
+  }
+
+  verifyMfa(input: MfaVerifyInput, options: RequestOptions = {}) {
+    return this.httpClient.request({
+      body: input,
+      method: "post",
+      path: MFA_VERIFY_PATH,
+      signal: options.signal,
+    })
+  }
+
+  disableMfa(input: MfaDisableInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: MFA_DISABLE_PATH,
+      signal: options.signal,
+    })
+  }
+
+  getMfaStatus(options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      headers: authorizationHeader(options.accessToken),
+      method: "get",
+      path: MFA_STATUS_PATH,
+      signal: options.signal,
+    })
+  }
+
+  regenerateMfaRecoveryCodes(input: MfaRegenerateRecoveryCodesInput, options: AuthenticatedRequestOptions) {
+    return this.httpClient.request({
+      body: input,
+      headers: authorizationHeader(options.accessToken),
+      method: "post",
+      path: MFA_RECOVERY_CODES_PATH,
+      signal: options.signal,
+    })
+  }
+
+  sendMfaEmailCode(input: MfaEmailCodeInput, options: RequestOptions = {}) {
+    return this.httpClient.request({
+      body: input,
+      method: "post",
+      path: MFA_EMAIL_CODE_PATH,
+      signal: options.signal,
+    })
+  }
+
   getActiveSessions(options: AuthenticatedRequestOptions) {
     return this.httpClient.request({
       headers: authorizationHeader(options.accessToken),
@@ -256,14 +372,29 @@ export { AuthenticationApiClient }
 export type {
   AuthenticatedRequestOptions,
   CurrentUserResponse,
+  DeleteCurrentUserAvatarResponse,
   UpdatedUserResponse,
   UpdateCurrentUserInput,
+  UploadCurrentUserAvatarResponse,
   ChangePasswordInput,
   ChangePasswordResponse,
   ActiveSessionsResponse,
   LoginHistoryResponse,
   LinkSocialAccountInput,
   LinkSocialAccountResponse,
+  MfaDisableInput,
+  MfaDisableResponse,
+  MfaEmailCodeInput,
+  MfaEmailCodeResponse,
+  MfaRegenerateRecoveryCodesInput,
+  MfaRegenerateRecoveryCodesResponse,
+  MfaSetupInput,
+  MfaSetupResponse,
+  MfaStatusResponse,
+  MfaVerifyInput,
+  MfaVerifyResponse,
+  MfaVerifySetupInput,
+  MfaVerifySetupResponse,
   ForgotPasswordInput,
   ForgotPasswordResponse,
   LoginInput,

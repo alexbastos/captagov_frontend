@@ -2,12 +2,13 @@
 
 import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
-import { getAuthErrorNotification } from "../lib/get-auth-error-notification"
 import { getSafeAuthRedirect } from "../lib/get-safe-auth-redirect"
 import { authBffClient } from "../services/auth-bff-client"
 import { useLoginAuthenticationFlow } from "./use-login-authentication-flow"
+import { useAuthErrorNotification } from "./use-auth-error-notification"
 
 const GOOGLE_IDENTITY_SERVICES_URL = "https://accounts.google.com/gsi/client"
 const GOOGLE_SCOPE = "openid email profile"
@@ -22,6 +23,8 @@ class GooglePopupError extends Error {
 }
 
 function useGoogleAuth(redirectTo?: string) {
+  const t = useTranslations("auth.notifications")
+  const getAuthErrorNotification = useAuthErrorNotification()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { awaitDestination, finishAuthentication, runAuthentication } = useLoginAuthenticationFlow()
@@ -34,8 +37,8 @@ function useGoogleAuth(redirectTo?: string) {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
     if (!clientId) {
-      toast.error("Login com Google indisponível", {
-        description: "A configuração de login social ainda não está disponível.",
+      toast.error(t("googleUnavailable.title"), {
+        description: t("googleUnavailable.description"),
       })
       return
     }
@@ -56,8 +59,8 @@ function useGoogleAuth(redirectTo?: string) {
 
       if (outcome.type === "error") {
         await finishAuthentication()
-        toast.error("Não foi possível entrar com Google", {
-          description: "Tente novamente em instantes.",
+        toast.error(t("socialAuthFailed.title"), {
+          description: t("genericLogin.description"),
         })
         return
       }
@@ -78,13 +81,13 @@ function useGoogleAuth(redirectTo?: string) {
         return
       }
 
-      toast.error("Não foi possível entrar com Google", {
-        description: "Tente novamente em instantes.",
+      toast.error(t("socialAuthFailed.title"), {
+        description: t("genericLogin.description"),
       })
     } finally {
       setIsSubmitting(false)
     }
-  }, [awaitDestination, finishAuthentication, isSubmitting, redirectTo, router, runAuthentication])
+  }, [awaitDestination, finishAuthentication, getAuthErrorNotification, isSubmitting, redirectTo, router, runAuthentication, t])
 
   return { isSubmitting, signIn }
 }

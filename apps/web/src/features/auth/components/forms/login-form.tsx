@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { InputField } from "@/components/ui/input-field"
@@ -17,6 +18,7 @@ type LoginFormProps = {
 }
 
 function LoginForm({ redirectTo }: LoginFormProps) {
+  const t = useTranslations("auth")
   const { form, isSubmitting, onSubmit } = useLogin(redirectTo)
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -26,17 +28,17 @@ function LoginForm({ redirectTo }: LoginFormProps) {
   return (
     <div ref={formRef} className="space-y-4">
       <div className="space-y-2 text-center" data-login-step>
-        <h1 className="text-heading-4 text-capta-text-primary">Bem-vindo de volta</h1>
-        <p className="text-ui text-capta-text-secondary">Acesse sua conta para encontrar oportunidades para o seu município.</p>
+        <h1 className="text-heading-4 text-capta-text-primary">{t("login.title")}</h1>
+        <p className="text-ui text-capta-text-secondary">{t("login.description")}</p>
       </div>
 
       <div data-login-step>
         <GoogleAuthButton redirectTo={redirectTo} />
       </div>
 
-      <div aria-label="ou entre com e-mail e senha" className="flex items-center gap-3" data-login-step role="separator">
+      <div aria-label={t("shared.emailDividerLabel")} className="flex items-center gap-3" data-login-step role="separator">
         <div className="h-px flex-1 bg-capta-border-default" />
-        <span className="text-ui text-capta-text-secondary">ou entre com</span>
+        <span className="text-ui text-capta-text-secondary">{t("shared.emailDivider")}</span>
         <div className="h-px flex-1 bg-capta-border-default" />
       </div>
 
@@ -46,7 +48,7 @@ function LoginForm({ redirectTo }: LoginFormProps) {
             {...form.register("email")}
             autoComplete="email"
             error={form.formState.errors.email?.message}
-            label="E-mail"
+            label={t("fields.email")}
             required
             type="email"
           />
@@ -57,31 +59,31 @@ function LoginForm({ redirectTo }: LoginFormProps) {
             {...form.register("password")}
             autoComplete="current-password"
             error={form.formState.errors.password?.message}
-            label="Senha"
+            label={t("fields.password")}
             required
           />
         </div>
 
         <p className="text-right text-ui text-capta-text-secondary" data-login-step>
           <AuthNavLink className="font-semibold text-capta-text-primary" href="/forgot-password">
-            Esqueceu sua senha?
+            {t("login.forgotPassword")}
           </AuthNavLink>
         </p>
 
         <div data-login-step>
           <Button className="w-full" loading={isSubmitting} type="submit">
-            Entrar
+            {t("login.submit")}
           </Button>
         </div>
       </form>
 
       <p className="text-center text-ui text-capta-text-secondary" data-login-step>
-        Ainda não possui uma conta?{" "}
+        {t("login.noAccount")}{" "}
         <AuthNavLink
           className="font-semibold text-capta-text-primary"
           href="/register"
         >
-          Criar conta
+          {t("shared.createAccount")}
         </AuthNavLink>
       </p>
     </div>

@@ -1,11 +1,13 @@
 import { z } from "zod"
 
-const LoginSchema = z.object({
-  email: z.string().trim().email("Informe um e-mail válido."),
-  password: z.string().min(8, "A senha deve ter ao menos 8 caracteres."),
-})
+function createLoginSchema(messages: { invalidEmail: string; passwordMin: string }) {
+  return z.object({
+    email: z.string().trim().email(messages.invalidEmail),
+    password: z.string().min(8, messages.passwordMin),
+  })
+}
 
-type LoginValues = z.infer<typeof LoginSchema>
+type LoginValues = z.infer<ReturnType<typeof createLoginSchema>>
 
-export { LoginSchema }
+export { createLoginSchema }
 export type { LoginValues }

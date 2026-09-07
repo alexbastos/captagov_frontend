@@ -9,6 +9,7 @@ import {
   SocialLoginRequestSchema,
 } from "@/lib/server/auth-bff-route"
 import { setSessionCookies } from "@/lib/server/session-cookies"
+import { synchronizeRegionalPreferenceCookies } from "@/lib/server/regional-preference"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
 
     const response = createSuccessResponse()
     setSessionCookies(response.cookies, tokens)
+    await synchronizeRegionalPreferenceCookies({ accessToken: tokens.accessToken, client, cookieWriter: response.cookies })
 
     return response
   } catch (error) {
