@@ -72,8 +72,18 @@ Caso precise intervir manualmente, acesse a instância e execute os passos:
    ```bash
    cd /home/ubuntu/captagov_frontend
    git pull origin master
-   docker build -t captagov-frontend .
+   set -a
+   . ./.env
+   set +a
+   docker build \
+     --build-arg AUTHENTICATION_API_BASE_URL \
+     --build-arg CAPTAGOV_APP_ORIGIN \
+     -t captagov-frontend .
    docker stop captagov-frontend-container || true
    docker rm captagov-frontend-container || true
    docker run -d --restart unless-stopped --name captagov-frontend-container -p 3001:3000 --env-file .env captagov-frontend
    ```
+
+   O arquivo `.env` usado na EC2 deve definir `AUTHENTICATION_API_BASE_URL` e
+   `CAPTAGOV_APP_ORIGIN`. As duas variáveis precisam usar URLs HTTPS em produção;
+   elas são fornecidas tanto ao build quanto ao contêiner em execução.

@@ -7,6 +7,13 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Public origins required while Next.js generates metadata routes.
+# They are build arguments rather than hard-coded deployment values.
+ARG AUTHENTICATION_API_BASE_URL
+ARG CAPTAGOV_APP_ORIGIN
+ENV AUTHENTICATION_API_BASE_URL=${AUTHENTICATION_API_BASE_URL}
+ENV CAPTAGOV_APP_ORIGIN=${CAPTAGOV_APP_ORIGIN}
+
 # Copy manifests
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
 COPY apps/web/package.json ./apps/web/package.json
@@ -20,6 +27,7 @@ COPY . .
 
 # Build Next.js application
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_STANDALONE=true
 ENV NODE_ENV=production
 RUN pnpm run build
 

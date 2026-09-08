@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+const isStandaloneBuild = process.env.NEXT_STANDALONE === "true";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: isStandaloneBuild ? "standalone" : undefined,
   transpilePackages: ["@capta/api-client"],
   devIndicators: false,
   async headers() {
